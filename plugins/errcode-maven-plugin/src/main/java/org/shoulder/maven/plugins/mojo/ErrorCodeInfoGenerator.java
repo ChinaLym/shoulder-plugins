@@ -67,6 +67,9 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
     @Parameter(property = "${formatType}", defaultValue = "properties")
     private String formatType;
 
+    @Parameter(defaultValue = "${project.build.sourceDirectory}", required = true, readonly = true)
+    private File sourceDir;
+
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
 
@@ -120,7 +123,6 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
         List<String> errorCodeInfoList = new LinkedList<>();
 
         errCodeEnumList.forEach(errCodeEnumClazz -> {
-            3
             errorCodeInfoList.add(genEnumSplitLine(errCodeEnumClazz));
             // 获取所有枚举实例
             ErrorCode[] instances = errCodeEnumClazz.getEnumConstants();
