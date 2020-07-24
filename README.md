@@ -1,37 +1,49 @@
 # shoulder-plugins
 
-#### 介绍
+## 简介
 shoulder-framework 的插件
 
-#### 软件架构
-软件架构说明
+### 功能说明
+
+按照 `shoulder` 推荐的风格编写代码时，可以通过该插件，自动生成错误码的相关信息，供其他软件/程序读取或使用。
+
+- 可生成多语言对应的 key，供翻译能力读取（为什么不在代码中：配置文件方式方便修改）
+- 可检索所有错误码，供统一索引，如提供错误码统一查询平台，根据错误码查询原因和建议
+- ....
 
 
-#### 安装教程
+### 使用说明
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
 
-#### 使用说明
+在项目中引入以下插件
+```
+    <build>
+        <plugins>
+        
+            <!-- shoulder 错误码插件 -->
+            <plugin>
+                <groupId>cn.itlym.shoulder.plugins</groupId>
+                <artifactId>errcode-maven-plugin</artifactId>
+                <version>0.0.1-SNAPSHOT</version>
+                <executions>
+                    <execution>
+                        <!-- 编译时触发该插件 -->
+                        <phase>compile</phase>
+                        <!-- 使用该插件的生成错误码信息功能 -->
+                        <goals>
+                            <goal>generateErrorCodeInfo</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            
+        </plugins>
+    </build>
+```
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
-
-#### 参与贡献
+### 参与贡献
 
 1.  Fork 本仓库
-2.  新建 Feat_xxx 分支
+2.  新建 issue/{issue对应编号} 分支
 3.  提交代码
 4.  新建 Pull Request
-
-
-#### 码云特技
-
-1.  使用 Readme\_XXX.md 来支持不同的语言，例如 Readme\_en.md, Readme\_zh.md
-2.  码云官方博客 [blog.gitee.com](https://blog.gitee.com)
-3.  你可以 [https://gitee.com/explore](https://gitee.com/explore) 这个地址来了解码云上的优秀开源项目
-4.  [GVP](https://gitee.com/gvp) 全称是码云最有价值开源项目，是码云综合评定出的优秀开源项目
-5.  码云官方提供的使用手册 [https://gitee.com/help](https://gitee.com/help)
-6.  码云封面人物是一档用来展示码云会员风采的栏目 [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
