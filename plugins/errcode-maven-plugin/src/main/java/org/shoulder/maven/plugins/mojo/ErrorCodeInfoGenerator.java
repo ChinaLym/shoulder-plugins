@@ -88,6 +88,7 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
 
             // 获取
             List<String> enumErrorCodeInfoList = generateByEnumList(errCodeEnumList);
+            List<String> exErrorCodeInfoList = generateByExList(errCodeEnumList);
 
             // 写文件
             generateErrorCodeInfo(enumErrorCodeInfoList);
@@ -97,12 +98,22 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
         }
     }
 
+
+    /**
+     * 生成错误码信息，默认将其写入文件
+     * @param errorCodeInfoList 错误码信息行
+     */
     private void generateErrorCodeInfo(List<String> errorCodeInfoList) {
         String outputFileFullPath = "";
         File out = new File();
 
     }
 
+    /**
+     * 根据枚举型错误码生成错误码对应文档的每行
+     * @param errCodeEnumList 枚举类类列表
+     * @return 错误码信息行
+     */
     private List<String> generateByEnumList(List<Class<? extends ErrorCode>> errCodeEnumList) {
 
         // 包含错误码信息的每一行
@@ -122,7 +133,13 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
         return errorCodeInfoList;
     }
 
-    private List<String> generateByExList(List<Class<? extends ErrorCode>> errCodeEnumList) {
+
+    /**
+     * 根据异常型错误码生成错误码对应文档的每行
+     * @param errCodeExList 异常类列表
+     * @return 错误码信息行
+     */
+    private List<String> generateByExList(List<Class<? extends ErrorCode>> errCodeExList) {
         return Collections.emptyList();
     }
 
