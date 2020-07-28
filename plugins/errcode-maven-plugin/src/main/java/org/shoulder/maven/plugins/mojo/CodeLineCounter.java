@@ -52,8 +52,11 @@ public class CodeLineCounter extends AbstractMojo {
         }
 
         try {
+
+            getLog().info("sourceDir: " + sourceDir.getAbsolutePath());
             countDir(sourceDir);
 
+            getLog().info("testSourceDir: " + testSourceDir.getAbsolutePath());
             countDir(testSourceDir);
 
             for (Resource resource : resources) {

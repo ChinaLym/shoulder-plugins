@@ -28,66 +28,81 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
     /**
      * 错误码前缀（与应用挂钩），必填，如 "0x0001" 代表用户中心
      */
-    @Parameter(property = "${errorCodePrefix}", required = true)
+    @Parameter(property = "errorCodePrefix", required = true)
     private String errorCodePrefix;
+
+    /**
+     * 要扫描错误码的路径，一般是自己的包路径，如 org.shoulder
+     */
+    @Parameter(property = "scanPackage", required = true)
+    private String scanPackage;
 
     /**
      * 统一错误码多语言key的前缀，默认为 "err."
      */
-    @Parameter(property = "${i18nKeyPrefix}", required = false, defaultValue = "err.")
+    @Parameter(property = "i18nKeyPrefix", defaultValue = "err.")
     private String i18nKeyPrefix;
 
     /**
      * 生成错误码描述信息的后缀，默认为 ".desc"
      */
-    @Parameter(property = "${descriptionSuffix}", required = false, defaultValue = ".desc")
+    @Parameter(property = "descriptionSuffix", defaultValue = ".desc")
     private String descriptionSuffix;
 
     /**
      * 生成错误码解决建议信息的后缀，默认为 ".sug"
      */
-    @Parameter(property = "${suggestionSuffix}", defaultValue = ".sug")
+    @Parameter(property = "suggestionSuffix", defaultValue = ".sug")
     private String suggestionSuffix;
 
     /**
      * 生成错误码信息文件的目标路径
      */
-    @Parameter(property = "${outputDirectory}", defaultValue = "./output")
+    @Parameter(property = "outputDirectory", defaultValue = "./output")
     private String outputDirectory;
 
     /**
      * 错误码信息文件名称，推荐为应用 标识_error_code.properties
      */
-    @Parameter(property = "${fileName}", defaultValue = "errorCode.properties")
+    @Parameter(property = "fileName", defaultValue = "errorCode.properties")
     private String fileName;
 
     /**
      * 生成的错误码信息格式，默认 properties，可选 properties，json
      */
-    @Parameter(property = "${formatType}", defaultValue = "properties")
+    @Parameter(property = "formatType", defaultValue = "properties")
     private String formatType;
 
     @Parameter(defaultValue = "${project.build.sourceDirectory}", required = true, readonly = true)
     private File sourceDir;
 
+    public ErrorCodeInfoGenerator() {
+    }
+
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
 
-        getLog().info("baseDir目录" + baseDir);
+        getLog().info("baseDir目录: " + baseDir);
+        getLog().info("ScanPackage: " + scanPackage);
 
         try {
+
             // 获取所有错误码实现类
             List<Class<? extends ErrorCode>> allErrorCodeImplList =
-                    ClassUtil.getAllSonOfClass(ClassUtil.class.getPackage().getName(), ErrorCode.class);
+                    ClassUtil.getAllSonOfClass(scanPackage, ErrorCode.class);
 
             // 过滤出所有异常类、枚举类
             List<Class<? extends ErrorCode>> errCodeEnumList = allErrorCodeImplList.stream()
                     .filter(Class::isEnum)
                     .collect(Collectors.toList());
 
+            getLog().info("enum(impl ErrorCode) class num:" + errCodeEnumList.size());
+
             List<Class<? extends ErrorCode>> exList = allErrorCodeImplList.stream()
                     .filter(RuntimeException.class::isAssignableFrom)
                     .collect(Collectors.toList());
+
+            getLog().info("exception(impl ErrorCode) class num:" + exList.size());
 
             // 获取
             List<String> enumErrorCodeInfoList = generateByEnumList(errCodeEnumList);
@@ -108,8 +123,7 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
      */
     private void generateErrorCodeInfo(List<String> errorCodeInfoList) {
         String outputFileFullPath = "";
-        File out = new File();
-
+        errorCodeInfoList.forEach(getLog()::info);
     }
 
     /**

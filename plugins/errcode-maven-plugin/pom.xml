@@ -60,7 +60,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-plugin-plugin</artifactId>
-                <version>3.5.2</version>
+                <version>3.6.0</version>
                 <configuration>
                     <!-- 或者在类的注视上添加一个descriptor -->
                     <!-- Needed for Java 5 annotation based configuration, for some reason. -->
@@ -77,7 +77,7 @@
                     <execution>
                         <id>attach-sources</id>
                         <!-- let it work when mvn package -->
-                        <phase>package</phase>
+                        <phase>deploy</phase>
                         <goals>
                             <goal>jar</goal>
                             <goal>jar-no-fork</goal>
@@ -100,7 +100,7 @@
                 <executions>
                     <execution>
                         <id>attach-javadocs</id>
-                        <phase>package</phase>
+                        <phase>deploy</phase>
                         <goals>
                             <goal>jar</goal>
                         </goals>
@@ -112,7 +112,7 @@
                 </executions>
             </plugin>
 
-            <!-- GPG  发布插件-->
+            <!-- GPG  发布插件 mvn help:describe -Dplugin=org.apache.maven.plugins:maven-gpg-plugin:1.6 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>
@@ -120,7 +120,7 @@
                 <executions>
                     <execution>
                         <id>sign-artifacts</id>
-                        <phase>verify</phase>
+                        <phase>deploy</phase>
                         <goals>
                             <goal>sign</goal>
                         </goals>

@@ -1,5 +1,8 @@
 package org.shoulder.maven.plugins.mojo;
 
+import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.plugin.logging.SystemStreamLog;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -10,6 +13,8 @@ import java.util.List;
  * @author lym
  */
 public class ClassUtil {
+
+    private static final Log log = new SystemStreamLog();
 
     public static <T> List<Class<? extends T>> getAllSonOfClass(String packageName, Class<T> clazz) {
         return filterSonOfClass(getAllClass(packageName), clazz);
@@ -33,41 +38,68 @@ public class ClassUtil {
         return list;
     }
 
-    /**
-     * 从一个指定路径下查找所有的类
-     */
     @SuppressWarnings("rawtypes")
     private static List<Class<?>> getAllClass(String packageName) {
+        List<String> classFullNames = convertFileToClassFullName(getAllClassFilePath(packageName));
+
         ArrayList<Class<?>> classes = new ArrayList<>();
-        //先把包名转换为路径,首先得到项目的classpath
-        String classpath = ClassUtil.class.getResource("/").getPath();
-        //然后把我们的包名basPach转换为路径名
-        packageName = packageName.replace(".", File.separator);
-        //然后把classpath和basePack合并
-        String searchPath = classpath + packageName;
-        List<String> classPaths = new LinkedList<>();
-        doPath(new File(searchPath), classPaths);
-        //这个时候我们已经得到了指定包下所有的类的绝对路径了。我们现在利用这些绝对路径和java的反射机制得到他们的类对象
-        for (String s : classPaths) {
-            //把 D:\work\code\20170401\search-class\target\classes\com\baibin\search\a\A.class 这样的绝对路径转换为全类名com.baibin.search.a.A
-            s = s.replace(classpath.replace("/","\\").replaceFirst("\\\\",""),"").replace("\\",".").replace(".class","");
-            Class cls = null;
+        // 利用这些绝对路径和反射机制得类对象
+        for (String classFullName : classFullNames) {
             try {
-                cls = Class.forName(s);
+                log.debug("try loading " + classFullName + "");
+                classes.add(Class.forName(classFullName));
+                log.debug("load (" + classFullName + ") SUCCESS!");
             } catch (ClassNotFoundException e) {
-                //log.error("class not found " + s, e);
+                log.error("class not found " + classFullName, e);
             }
-            classes.add(cls);
         }
         return classes;
     }
 
-    private static void doPath(File file, List<String> allFile) {
+    /**
+     * 列出指定包名下所有的类的文件路径
+     */
+    private static List<String> getAllClassFilePath(String packageName) {
+        //先把包名转换为路径,首先得到项目的classpath
+        String classpath = ClassUtil.class.getResource("/").getPath();
+        log.debug("classpath: " + classpath);
+
+        //然后把我们的包名basPath转换为路径名
+        packageName = packageName.replace(".", File.separator);
+
+        //然后把classpath和basePack合并
+        String searchPath = classpath + packageName;
+        log.debug("searchPath: " + searchPath);
+
+        return listAllClassFiles(new File(searchPath));
+    }
+
+
+    /**
+     * 将文件路径转化为 类的全限定名
+     * 把 D:\work\code\20170401\search-class\target\classes\org\shoulder\core\A.class 这样的绝对路径转换为全类名org.shoulder.core.A
+     */
+    private static List<String> convertFileToClassFullName(List<String> classFilePath) {
+        String classpath = ClassUtil.class.getResource("/").getPath();
+        String filePathPrefix = classpath.replace("/", "\\").replaceFirst("\\\\", "");
+        List<String> result = new ArrayList<>(classFilePath.size());
+        for (String filePath : classFilePath) {
+            String classPath = filePath.replace(filePathPrefix, "")
+                    .replace("\\", ".")
+                    .replace(".class", "");
+            result.add(classPath);
+            log.debug("converted filePath(" + filePath + ") to classPath(" + classPath + ")");
+        }
+        return result;
+    }
+
+    private static List<String> listAllClassFiles(File file) {
+        List<String> allFile = new LinkedList<>();
         if (file.isDirectory()) {
             File[] files = file.listFiles();
             if (files != null) {
                 for (File f : files) {
-                    doPath(f, allFile);
+                    allFile.addAll(listAllClassFiles(f));
                 }
             }
         } else {
@@ -76,6 +108,7 @@ public class ClassUtil {
                 allFile.add(file.getPath());
             }
         }
+        return allFile;
     }
 
 
@@ -131,4 +164,5 @@ public class ClassUtil {
                     file.getName().length() - ".class".length()));
         }
     }
+
 }
