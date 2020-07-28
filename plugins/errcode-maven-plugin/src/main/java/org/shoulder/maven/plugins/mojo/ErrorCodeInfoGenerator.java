@@ -3,11 +3,16 @@ package org.shoulder.maven.plugins.mojo;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.apache.maven.project.MavenProject;
 import org.shoulder.core.exception.ErrorCode;
 
 import java.io.File;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -18,12 +23,21 @@ import java.util.stream.Collectors;
  *
  * @author lym
  * @goal 生成错误码文档
+ * @goal extract
+ * @phase package
+ * @requiresDependencyResolution compile
  */
-@Mojo(name = "generateErrorCodeInfo")
+@Mojo(name = "generateErrorCodeInfo", defaultPhase = LifecyclePhase.PACKAGE, requiresDependencyResolution = ResolutionScope.COMPILE)
 public class ErrorCodeInfoGenerator extends AbstractMojo {
 
-    @Parameter(defaultValue = "${basedir}")
-    private File baseDir;
+    /**
+     * 源码目录
+     */
+    @Parameter(defaultValue = "${project.build.sourceDirectory}", required = true, readonly = true)
+    private File sourceDirectory;;
+
+    @Parameter(defaultValue = "${project}", readonly = true)
+    private MavenProject project;
 
     /**
      * 错误码前缀（与应用挂钩），必填，如 "0x0001" 代表用户中心
@@ -82,14 +96,14 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
 
-        getLog().info("baseDir目录: " + baseDir);
-        getLog().info("ScanPackage: " + scanPackage);
-
+        getLog().info("源码目录 sourceDirectory: " + sourceDirectory);
+        getLog().info("需要扫描的包路径 scanPackage: " + scanPackage);
+        ClassUtil.setClassLoader(getClassLoader(project));
         try {
 
             // 获取所有错误码实现类
             List<Class<? extends ErrorCode>> allErrorCodeImplList =
-                    ClassUtil.getAllSonOfClass(scanPackage, ErrorCode.class);
+                    ClassUtil.getAllSonOfClass(sourceDirectory.getAbsolutePath(), scanPackage, ErrorCode.class);
 
             // 过滤出所有异常类、枚举类
             List<Class<? extends ErrorCode>> errCodeEnumList = allErrorCodeImplList.stream()
@@ -200,4 +214,19 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
     }
 
 
+    private ClassLoader getClassLoader(MavenProject project) {
+        try {
+            List<String> classpathElements = project.getCompileClasspathElements();
+            classpathElements.add(project.getBuild().getOutputDirectory());
+            classpathElements.add(project.getBuild().getTestOutputDirectory());
+            URL[] urls = new URL[classpathElements.size()];
+            for (int i = 0; i < classpathElements.size(); ++i) {
+                urls[i] = new File(classpathElements.get(i)).toURI().toURL();
+            }
+            return new URLClassLoader(urls, this.getClass().getClassLoader());
+        } catch (Exception e) {
+            getLog().debug("Couldn't get the classloader.");
+            return this.getClass().getClassLoader();
+        }
+    }
 }

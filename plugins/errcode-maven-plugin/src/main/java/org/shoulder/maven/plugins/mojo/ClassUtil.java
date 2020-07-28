@@ -10,24 +10,34 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
+ * 在maven插件中是加载不到目标项目的类及目标项目引用的第三方所提供的类的，
+ * 需要通过动态读取目标项目所依赖的classpath并根据这些classpath生成相应的url数组，
+ * 以这个url数组作为参数得到的类加载器可以实现在maven插件中动态加载目标项目类及第三方引用包的目的。
+ * 官方文档：http://maven.apache.org/guides/mini/guide-maven-classloading.html
+ * 参考插件：maven-compiler-plugin
+ *
  * @author lym
  */
 public class ClassUtil {
 
     private static final Log log = new SystemStreamLog();
 
-    public static <T> List<Class<? extends T>> getAllSonOfClass(String packageName, Class<T> clazz) {
-        return filterSonOfClass(getAllClass(packageName), clazz);
+    public static <T> List<Class<? extends T>> getAllSonOfClass(String sourcePath, String packageName, Class<T> clazz) {
+        return filterSonOfClass(getAllClass(sourcePath, packageName), clazz);
     }
 
     @SuppressWarnings({"unchecked"})
     private static <T> List<Class<? extends T>> filterSonOfClass(Collection<Class<?>> allClass, Class<T> clazz) {
         List<Class<? extends T>> list = new LinkedList<>();
+        log.info("class total num: " + allClass.size());
         try {
             for (Class aClass : allClass) {
+                log.info("check " + aClass.getName());
                 if (clazz.isAssignableFrom(aClass)) {
                     // 自身并不加进去
+                    log.info("found " + aClass.getName());
                     if (!clazz.equals(aClass)) {
+                        log.info("found and match" + aClass.getName());
                         list.add(aClass);
                     }
                 }
@@ -39,16 +49,16 @@ public class ClassUtil {
     }
 
     @SuppressWarnings("rawtypes")
-    private static List<Class<?>> getAllClass(String packageName) {
-        List<String> classFullNames = convertFileToClassFullName(getAllClassFilePath(packageName));
-
+    private static List<Class<?>> getAllClass(String sourcePath, String packageName) {
+        List<String> classFullNames = convertJavaSourceToClassFullName(packageName, getAllClassFilePath(sourcePath, packageName));
+        log.info("total source file num: " + classFullNames.size());
         ArrayList<Class<?>> classes = new ArrayList<>();
         // 利用这些绝对路径和反射机制得类对象
         for (String classFullName : classFullNames) {
             try {
-                log.debug("try loading " + classFullName + "");
-                classes.add(Class.forName(classFullName));
-                log.debug("load (" + classFullName + ") SUCCESS!");
+                log.info("try loading " + classFullName + "");
+                classes.add(classLoader.loadClass(classFullName));
+                log.info("load (" + classFullName + ") SUCCESS!");
             } catch (ClassNotFoundException e) {
                 log.error("class not found " + classFullName, e);
             }
@@ -59,71 +69,81 @@ public class ClassUtil {
     /**
      * 列出指定包名下所有的类的文件路径
      */
-    private static List<String> getAllClassFilePath(String packageName) {
+    private static List<String> getAllClassFilePath(String sourcePath, String packageName) {
         //先把包名转换为路径,首先得到项目的classpath
-        String classpath = ClassUtil.class.getResource("/").getPath();
-        log.debug("classpath: " + classpath);
+        log.debug("sourcePath: " + sourcePath);
 
         //然后把我们的包名basPath转换为路径名
         packageName = packageName.replace(".", File.separator);
 
         //然后把classpath和basePack合并
-        String searchPath = classpath + packageName;
+        String searchPath = sourcePath + File.separator + packageName;
         log.debug("searchPath: " + searchPath);
 
-        return listAllClassFiles(new File(searchPath));
+        return listFilesAndSelect(new File(searchPath), new JavaSourceFileSelector());
     }
 
 
     /**
      * 将文件路径转化为 类的全限定名
-     * 把 D:\work\code\20170401\search-class\target\classes\org\shoulder\core\A.class 这样的绝对路径转换为全类名org.shoulder.core.A
+     * 把 D:\projects\shoulder-core\src\main\java\org\shoulder\core\A.class 这样的绝对路径转换为全类名org.shoulder.core.A
      */
-    private static List<String> convertFileToClassFullName(List<String> classFilePath) {
-        String classpath = ClassUtil.class.getResource("/").getPath();
-        String filePathPrefix = classpath.replace("/", "\\").replaceFirst("\\\\", "");
+    private static List<String> convertJavaSourceToClassFullName(String packageName, List<String> classFilePath) {
         List<String> result = new ArrayList<>(classFilePath.size());
         for (String filePath : classFilePath) {
-            String classPath = filePath.replace(filePathPrefix, "")
-                    .replace("\\", ".")
-                    .replace(".class", "");
+            String classPath = filePath.replaceAll("/+|\\\\+", ".");
+            classPath = classPath.substring(classPath.indexOf(packageName))
+                    .replace(".java", "");
             result.add(classPath);
             log.debug("converted filePath(" + filePath + ") to classPath(" + classPath + ")");
         }
         return result;
     }
 
-    private static List<String> listAllClassFiles(File file) {
+    private static List<String> listFilesAndSelect(File file, FileSelector fileSelector) {
         List<String> allFile = new LinkedList<>();
         if (file.isDirectory()) {
             File[] files = file.listFiles();
             if (files != null) {
                 for (File f : files) {
-                    allFile.addAll(listAllClassFiles(f));
+                    allFile.addAll(listFilesAndSelect(f, fileSelector));
                 }
             }
         } else {
-            if (file.getName().endsWith(".class")) {
-                //如果是class文件我们就放入我们的集合中。
+            if (fileSelector.include(file)) {
+                //如果需要就加入
                 allFile.add(file.getPath());
             }
         }
         return allFile;
     }
 
+    private static ClassLoader classLoader = ClassUtil.class.getClassLoader();
 
+    public static void setClassLoader(ClassLoader clazzLoader) {
+        classLoader = clazzLoader;
+    }
 
     @FunctionalInterface
-    interface FileScanFilter {
+    interface FileSelector {
+        /**
+         * 是否包含该文件
+         *
+         * @param file
+         * @return
+         */
         boolean include(File file);
     }
 
-    abstract class AbstractFileScanFilter implements FileScanFilter {
+    static abstract class AbstractFileSelector implements FileSelector {
 
-        protected FileScanFilter delegate;
+        protected FileSelector delegate;
 
-        AbstractFileScanFilter(FileScanFilter delegate) {
+        AbstractFileSelector(FileSelector delegate) {
             this.delegate = delegate;
+        }
+
+        AbstractFileSelector() {
         }
 
         @Override
@@ -137,10 +157,12 @@ public class ClassUtil {
 
     }
 
-    class ClassFileFilter extends AbstractFileScanFilter {
-
-        public ClassFileFilter(FileScanFilter delegate) {
+    static class ClassFileSelector extends AbstractFileSelector {
+        public ClassFileSelector(FileSelector delegate) {
             super(delegate);
+        }
+
+        ClassFileSelector() {
         }
 
         @Override
@@ -149,11 +171,25 @@ public class ClassUtil {
         }
     }
 
-    class SpecialTypeFilter extends ClassFileFilter {
+    static class JavaSourceFileSelector extends AbstractFileSelector {
+        public JavaSourceFileSelector(FileSelector delegate) {
+            super(delegate);
+        }
+
+        JavaSourceFileSelector() {
+        }
+
+        @Override
+        public boolean isWanted(File file) {
+            return file.getName().endsWith(".java");
+        }
+    }
+
+    static class SpecialTypeFilter extends ClassFileSelector {
 
         private Class<?> type;
 
-        public SpecialTypeFilter(FileScanFilter delegate, Class<?> type) {
+        public SpecialTypeFilter(FileSelector delegate, Class<?> type) {
             super(delegate);
             this.type = type;
         }
@@ -165,4 +201,9 @@ public class ClassUtil {
         }
     }
 
+
+    public static void main(String[] args) {
+        String s = "F:.codes.java.self.shoulder-framework.shoulder-build.shoulder-base.shoulder-operation-log.src.main.java.org.shoulder.log.operation.annotation.OperationLog.java";
+        System.out.println(s.substring(s.indexOf("org.shoulder.log")));
+    }
 }
