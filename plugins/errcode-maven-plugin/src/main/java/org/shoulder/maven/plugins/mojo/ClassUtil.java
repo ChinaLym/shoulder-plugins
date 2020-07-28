@@ -32,18 +32,17 @@ public class ClassUtil {
         log.info("class total num: " + allClass.size());
         try {
             for (Class aClass : allClass) {
-                log.info("check " + aClass.getName());
-                if (clazz.isAssignableFrom(aClass)) {
-                    // 自身并不加进去
-                    log.info("found " + aClass.getName());
-                    if (!clazz.equals(aClass)) {
-                        log.info("found and match" + aClass.getName());
-                        list.add(aClass);
-                    }
+                boolean isSon = clazz.isAssignableFrom(aClass) && !clazz.equals(aClass);
+                // 继承或实现类，去除自身
+                if (isSon) {
+                    log.info("found and match" + aClass.getName());
+                    list.add(aClass);
+                }else {
+                    log.debug("Ignored class " + aClass.getName());
                 }
             }
         } catch (Exception e) {
-            throw new RuntimeException("error when scan package");
+            throw new RuntimeException("filterSonOfClass fail", e);
         }
         return list;
     }
@@ -56,11 +55,10 @@ public class ClassUtil {
         // 利用这些绝对路径和反射机制得类对象
         for (String classFullName : classFullNames) {
             try {
-                log.info("try loading " + classFullName + "");
                 classes.add(classLoader.loadClass(classFullName));
-                log.info("load (" + classFullName + ") SUCCESS!");
+                log.debug("loaded class: " + classFullName);
             } catch (ClassNotFoundException e) {
-                log.error("class not found " + classFullName, e);
+                log.warn("class not found " + classFullName, e);
             }
         }
         return classes;
@@ -181,7 +179,7 @@ public class ClassUtil {
 
         @Override
         public boolean isWanted(File file) {
-            return file.getName().endsWith(".java");
+            return file.getName().endsWith(".java") && !file.getName().contains("package-info");
         }
     }
 
