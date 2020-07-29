@@ -35,10 +35,10 @@ public class ClassUtil {
                 boolean isSon = clazz.isAssignableFrom(aClass) && !clazz.equals(aClass);
                 // 继承或实现类，去除自身
                 if (isSon) {
-                    log.info("found and match" + aClass.getName());
+                    log.info("MATCH: " + aClass.getName());
                     list.add(aClass);
                 }else {
-                    log.debug("Ignored class " + aClass.getName());
+                    log.debug("Ignored class: " + aClass.getName());
                 }
             }
         } catch (Exception e) {

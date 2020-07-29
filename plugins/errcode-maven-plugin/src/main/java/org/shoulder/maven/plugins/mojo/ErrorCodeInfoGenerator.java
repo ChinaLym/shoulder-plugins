@@ -1,5 +1,6 @@
 package org.shoulder.maven.plugins.mojo;
 
+import cn.hutool.core.io.FileUtil;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -13,6 +14,7 @@ import org.shoulder.core.exception.ErrorCode;
 import java.io.File;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -70,25 +72,16 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
     private String suggestionSuffix;
 
     /**
-     * 生成错误码信息文件的目标路径
+     * 生成错误码信息文件的目标路径，错误码信息文件名称，推荐为应用 标识_error_code.properties
      */
-    @Parameter(property = "outputDirectory", defaultValue = "./output")
-    private String outputDirectory;
+    @Parameter(property = "outputFile", defaultValue = "output/errorCode.properties")
+    private File outputFile;
 
     /**
-     * 错误码信息文件名称，推荐为应用 标识_error_code.properties
+     * 生成的错误码信息格式，默认 properties，根据 fileName 后缀可为 properties，json，默认 properties
      */
-    @Parameter(property = "fileName", defaultValue = "errorCode.properties")
-    private String fileName;
-
-    /**
-     * 生成的错误码信息格式，默认 properties，可选 properties，json
-     */
-    @Parameter(property = "formatType", defaultValue = "properties")
     private String formatType;
 
-    @Parameter(defaultValue = "${project.build.sourceDirectory}", required = true, readonly = true)
-    private File sourceDir;
 
     public ErrorCodeInfoGenerator() {
     }
@@ -98,7 +91,7 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
 
         getLog().info("源码目录 sourceDirectory: " + sourceDirectory);
         getLog().info("需要扫描的包路径 scanPackage: " + scanPackage);
-        ClassUtil.setClassLoader(getClassLoader(project));
+        ClassUtil.setClassLoader(getProjectClassLoader(project));
         try {
 
             // 获取所有错误码实现类
@@ -118,9 +111,9 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
 
             getLog().info("exception(impl ErrorCode) class num:" + exList.size());
 
-            // 获取
-            List<String> enumErrorCodeInfoList = generateByEnumList(errCodeEnumList);
-            List<String> exErrorCodeInfoList = generateByExList(errCodeEnumList);
+            // 获取错误码信息。暂时只支持枚举
+            List<List<String>> enumErrorCodeInfoList = generateErrorCodeInfoByEnumList(errCodeEnumList);
+            //List<String> exErrorCodeInfoList = generateByExList(errCodeEnumList);
 
             // 写文件
             generateErrorCodeInfo(enumErrorCodeInfoList);
@@ -133,32 +126,40 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
 
     /**
      * 生成错误码信息，默认将其写入文件
-     * @param errorCodeInfoList 错误码信息行
+     * @param allErrorCodeInfoList 错误码信息行
      */
-    private void generateErrorCodeInfo(List<String> errorCodeInfoList) {
-        String outputFileFullPath = "";
-        errorCodeInfoList.forEach(getLog()::info);
+
+    private void generateErrorCodeInfo(List<List<String>> allErrorCodeInfoList) {
+        for (List<String> errorCodeInfoList : allErrorCodeInfoList) {
+            StringBuilder perGroup = new StringBuilder("\r\n");
+            errorCodeInfoList.forEach(perGroup::append);
+            FileUtil.writeString(perGroup.toString(), outputFile, StandardCharsets.UTF_8);
+        }
     }
 
     /**
      * 根据枚举型错误码生成错误码对应文档的每行
      * @param errCodeEnumList 枚举类类列表
-     * @return 错误码信息行
+     * @return 错误码信息行，每个枚举一个 List
      */
-    private List<String> generateByEnumList(List<Class<? extends ErrorCode>> errCodeEnumList) {
+    private List<List<String>> generateErrorCodeInfoByEnumList(List<Class<? extends ErrorCode>> errCodeEnumList) {
 
-        // 包含错误码信息的每一行
-        List<String> errorCodeInfoList = new LinkedList<>();
+        // 所有行
+        List<List<String>> errorCodeInfoList = new LinkedList<>();
 
         errCodeEnumList.forEach(errCodeEnumClazz -> {
-            errorCodeInfoList.add(genEnumSplitLine(errCodeEnumClazz));
+
+            // 特定类的包含错误码信息的每一行
+            List<String> errorCodeInfo = new LinkedList<>();
+            errorCodeInfo.add(genEnumSplitLine(errCodeEnumClazz));
             // 获取所有枚举实例
             ErrorCode[] instances = errCodeEnumClazz.getEnumConstants();
             for (ErrorCode instance : instances) {
                 String errorCode = instance.getCode();
-                errorCodeInfoList.add(genDescriptionKey(errorCode));
-                errorCodeInfoList.add(genSuggestionKey(errorCode));
+                errorCodeInfo.add(genDescriptionKey(errorCode));
+                errorCodeInfo.add(genSuggestionKey(errorCode));
             }
+            errorCodeInfoList.add(errorCodeInfo);
         });
         return errorCodeInfoList;
     }
@@ -170,6 +171,9 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
      * @return 错误码信息行
      */
     private List<String> generateByExList(List<Class<? extends ErrorCode>> errCodeExList) {
+        List<String> errorCodeInfo = new LinkedList<>();
+        for (Class<? extends ErrorCode> ex : errCodeExList) {
+        }
         return Collections.emptyList();
     }
 
@@ -214,18 +218,25 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
     }
 
 
-    private ClassLoader getClassLoader(MavenProject project) {
+    /**
+     * 自定义类加载器，以获取目标项目的类环境
+     * @param project mavenProject
+     * @return 目标项目编译环境类加载器
+     */
+    private ClassLoader getProjectClassLoader(MavenProject project) {
         try {
-            List<String> classpathElements = project.getCompileClasspathElements();
-            classpathElements.add(project.getBuild().getOutputDirectory());
-            classpathElements.add(project.getBuild().getTestOutputDirectory());
-            URL[] urls = new URL[classpathElements.size()];
-            for (int i = 0; i < classpathElements.size(); ++i) {
-                urls[i] = new File(classpathElements.get(i)).toURI().toURL();
+            List<String> classpathList = project.getCompileClasspathElements();
+            classpathList.add(project.getBuild().getOutputDirectory());
+            classpathList.add(project.getBuild().getTestOutputDirectory());
+            // 转为 URL
+            URL[] urls = new URL[classpathList.size()];
+            for (int i = 0; i < classpathList.size(); ++i) {
+                urls[i] = new File(classpathList.get(i)).toURI().toURL();
             }
+            // 生成类加载器
             return new URLClassLoader(urls, this.getClass().getClassLoader());
         } catch (Exception e) {
-            getLog().debug("Couldn't get the classloader.");
+            getLog().warn("Couldn't get the aim project classloader. Fallback to plugin classLoader.");
             return this.getClass().getClassLoader();
         }
     }
