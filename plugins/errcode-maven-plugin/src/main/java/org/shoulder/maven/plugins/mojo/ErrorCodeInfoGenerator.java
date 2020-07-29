@@ -15,9 +15,7 @@ import java.io.File;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -82,6 +80,7 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
      */
     private String formatType;
 
+    public static String NEW_LINE = "\r\n";//System.getProperty("line.separator");
 
     public ErrorCodeInfoGenerator() {
     }
@@ -131,9 +130,15 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
      */
 
     private void outputErrorCodeInfo(List<List<String>> allErrorCodeInfoList) {
-        for (List<String> errorCodeInfoList : allErrorCodeInfoList) {
-            StringBuilder perGroup = new StringBuilder("\r\n");
-            errorCodeInfoList.forEach(perGroup::append);
+        for (List<String> errorCodeInfoGroup : allErrorCodeInfoList) {
+            StringBuilder perGroup = new StringBuilder(NEW_LINE + NEW_LINE);
+            // 每两行之间插入空格
+            int count = 0;
+            for (String errorCodeInfo : errorCodeInfoGroup) {
+                perGroup.append(errorCodeInfo)
+                        .append(NEW_LINE)
+                        .append((count ++ & 1) == 0 ? NEW_LINE : "");
+            }
             FileUtil.writeString(perGroup.toString(), outputFile, StandardCharsets.UTF_8);
         }
     }
@@ -159,8 +164,9 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
             for (ErrorCode instance : instances) {
                 getLog().debug("analyzing Enum-Item: " + instance);
                 String errorCode = instance.getCode();
-                errorCodeInfo.add(genDescriptionKey(errorCode));
-                errorCodeInfo.add(genSuggestionKey(errorCode));
+                // todo value
+                errorCodeInfo.add(genDescriptionKey(errorCode) + "=");
+                errorCodeInfo.add(genSuggestionKey(errorCode) + "=");
             }
             errorCodeInfoList.add(errorCodeInfo);
         });
