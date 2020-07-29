@@ -115,8 +115,9 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
             List<List<String>> enumErrorCodeInfoList = generateErrorCodeInfoByEnumList(errCodeEnumList);
             //List<String> exErrorCodeInfoList = generateByExList(errCodeEnumList);
 
+            getLog().info("generate SUCCESS, writing to outputDir: " + outputFile.getAbsolutePath());
             // 写文件
-            generateErrorCodeInfo(enumErrorCodeInfoList);
+            outputErrorCodeInfo(enumErrorCodeInfoList);
 
         } catch (Exception e) {
             throw new MojoExecutionException(e.getMessage());
@@ -129,7 +130,7 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
      * @param allErrorCodeInfoList 错误码信息行
      */
 
-    private void generateErrorCodeInfo(List<List<String>> allErrorCodeInfoList) {
+    private void outputErrorCodeInfo(List<List<String>> allErrorCodeInfoList) {
         for (List<String> errorCodeInfoList : allErrorCodeInfoList) {
             StringBuilder perGroup = new StringBuilder("\r\n");
             errorCodeInfoList.forEach(perGroup::append);
@@ -151,10 +152,12 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
 
             // 特定类的包含错误码信息的每一行
             List<String> errorCodeInfo = new LinkedList<>();
+            getLog().debug("analyzing Enum: " + errCodeEnumClazz.getName());
             errorCodeInfo.add(genEnumSplitLine(errCodeEnumClazz));
             // 获取所有枚举实例
             ErrorCode[] instances = errCodeEnumClazz.getEnumConstants();
             for (ErrorCode instance : instances) {
+                getLog().debug("analyzing Enum-Item: " + instance);
                 String errorCode = instance.getCode();
                 errorCodeInfo.add(genDescriptionKey(errorCode));
                 errorCodeInfo.add(genSuggestionKey(errorCode));
