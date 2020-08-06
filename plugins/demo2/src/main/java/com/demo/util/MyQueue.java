@@ -6,8 +6,8 @@ import java.util.concurrent.locks.ReentrantLock;
 public class MyQueue<E> {
 
     static class Node<E> {
-        Node<E> prev;
         E data;
+        Node<E> prev;
         Node<E> next;
 
         Node(Node<E> prev, E data, Node<E> next) {
@@ -98,11 +98,9 @@ public class MyQueue<E> {
         if (first == null) {
             return null;
         }
-        Node<E> second = first.next;
         E element = first.data;
         first.data = null;
-        // help GC
-        //first.next = null;
+        Node<E> second = first.next;
         first = second;
         if (second == null) {
             last = null;
