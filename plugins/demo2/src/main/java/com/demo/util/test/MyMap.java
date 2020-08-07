@@ -7,7 +7,6 @@ public class MyMap<K, V> {
 
         final K key;
         V value;
-        long birth;
 
         Entry<K, V> next;
 
@@ -32,88 +31,84 @@ public class MyMap<K, V> {
         table = (Entry<K, V>[]) new Entry[size];
     }
 
-    private int indexOf(int hashCode) {
-        return hashCode % size;
-    }
-
-    private int hash(K k) {
-        int h;
-        return (h = k.hashCode()) ^ h >>> 16;
-    }
-
-    public V put(K key, V newValue) {
-        // kv 不能为空
-        if (key == null || newValue == null) {
+    public V put(K key, V value){
+        if(key == null || value == null){
             return null;
         }
 
-        // 计算位置
         int hash = hash(key);
-        int index = indexOf(hash);
+        int position = findPosition(hash);
 
-        // 循环目标位置的链表
-        for (Entry<K, V> e = table[index]; e != null; e = e.next) {
-            K aimKey = e.key;
-            if (hash == e.hash && (aimKey == key || aimKey.equals(key))) {
-                //若key存在 返回oldValue
+
+        for (Entry<K, V> e = table[position]; e != null ; e = e.next) {
+            K k = e.key;
+            if(e.hash == hash && (e.key == key) || e.key.equals(key)){
                 V oldValue = e.value;
-                e.value = newValue;
+                e.value = value;
                 return oldValue;
             }
         }
-        // 若key不存在，将新值插入Entry链表的最前端
-        table[index] = new Entry<K, V>(hash, key, newValue, null);
+        // 链表没有，加到最前
+        table[position] = new Entry<>(hash, key, value, table[position]);
         return null;
+
     }
 
-    public V get(K key) {
-        // kv 不能为空
-        if (key == null) {
+    public V get(K key){
+        if(key == null){
             return null;
         }
 
-        // 计算位置
         int hash = hash(key);
-        int index = indexOf(hash);
+        int position = findPosition(hash);
 
-        // 循环目标位置的链表
-        for (Entry<K, V> e = table[index]; e != null; e = e.next) {
+        for (Entry<K, V> e = table[position]; e != null ; e = e.next) {
             K k = e.key;
-            if (hash == e.hash && (k == key || k.equals(key))) {
+            if(e.hash == hash && (e.key == key) || e.key.equals(key)){
                 return e.value;
             }
         }
-
-        // 没找到
         return null;
+
     }
 
-    public V remove(K key) {
-        if (key == null) {
+    public V remove(K key){
+        if(key == null){
             return null;
         }
 
         int hash = hash(key);
-        int index = indexOf(hash);
+        int position = findPosition(hash);
 
-
-        // 循环目标位置的链表
-        for (Entry<K, V> e = table[index], prev = e; e != null; prev = e, e = e.next) {
+        Entry<K, V> e = table[position];
+        Entry<K, V> prev = e;
+        for (; e != null ; prev = e, e = e.next) {
             K k = e.key;
-            if (hash == e.hash && (k == key || k.equals(key))) {
-                if (e == table[index]) {
-                    // 没有链表
-                    table[index] = e.next;
-                } else {
-                    // 去除该链
+            if(e.hash == hash && (e.key == key) || e.key.equals(key)){
+                //
+                if(table[position] == e){
+                    // 在table?
+                    table[position] = null;
+                }else {
                     prev.next = e.next;
                 }
-                e.next = null;
+
                 return e.value;
             }
         }
-
         return null;
+
     }
 
+
+
+
+    private int hash(K key){
+        int h;
+        return (h = key.hashCode()) ^ h;
+    }
+
+    private int findPosition(int hash){
+        return hash % size;
+    }
 }

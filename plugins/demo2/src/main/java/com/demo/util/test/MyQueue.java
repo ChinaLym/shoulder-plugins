@@ -6,27 +6,29 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class MyQueue<E> {
 
-    class Node<E> {
+
+    static class Node<E> {
         E data;
         Node<E> prev;
         Node<E> next;
 
-        Node(E e){
-            this.data = e;
+        public Node(E data) {
+            this.data = data;
         }
     }
 
-    int count = 0;
-    final int capacity;
+    private int count;
+    private final int capacity;
 
-    Node<E> first;
-    Node<E> last;
+
+    private Node<E> first;
+    private Node<E> last;
 
     private Lock lock = new ReentrantLock();
     private Condition notEmpty = lock.newCondition();
     private Condition notFull = lock.newCondition();
 
-    MyQueue(int capacity){
+    public MyQueue(int capacity) {
         this.capacity = capacity;
     }
 
@@ -43,27 +45,28 @@ public class MyQueue<E> {
     }
 
     private boolean linkToLast(Node<E> newNode) {
-        assert Thread.holdsLock(lock);
-        // special check 满了
+        // check if could do
         if(count >= capacity){
             return false;
         }
 
-        // 完善 newNode
-        Node<E> oldLast = this.last;
-        newNode.prev = oldLast;
+        // adjust new
 
-        // 维护两个指针
-        last = newNode;
+        newNode.prev = this.last;
+
+        // maintain 2 point
+        Node<E> oldLast = this.last;
+        this.last = newNode;
+
         if(first == null){
-            // 第一个元素
+            // 第一次放
             first = newNode;
         }else {
             oldLast.next = newNode;
         }
 
-        // after add
-        ++count;
+        // after do
+        count ++;
         notEmpty.signal();
         return true;
     }
@@ -82,37 +85,33 @@ public class MyQueue<E> {
     }
 
     private E unlinkFirst() {
-        assert Thread.holdsLock(lock);
-        // 为空
+        // check if could do
         if(first == null){
             return null;
         }
 
-        // 完善 newNode
+        // get result
         E result = first.data;
 
         Node<E> second = first.next;
-
-
         first.data = null;
-        // help gc
         first.next = first;
 
         first = second;
 
-        // 维护两个指针
+        // maintain 2 point
+
         if(second == null){
-            // 取没了
+            // 拿没了
             last = null;
         }else {
             second.prev = null;
         }
 
-        // after take
-        --count;
+        // after do
+        count --;
         notFull.signal();
         return result;
     }
-
 
 }

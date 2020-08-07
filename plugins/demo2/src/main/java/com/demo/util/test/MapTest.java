@@ -19,5 +19,8 @@ public class MapTest {
         hashMap.forEach((k, v) -> {
             assert v == myMap.get(k);
         });
+        hashMap.forEach((k, v) -> {
+            assert v == myMap.remove(k);
+        });
     }
 }

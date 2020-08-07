@@ -58,8 +58,7 @@ public class MyMap<K, V> {
             }
         }
         //若key不存在，将新值插入Entry链表的最前端
-
-        table[index] = new Entry<K, V>(hash, key, newValue, table[index]);
+        table[index] = new Entry<>(hash, key, newValue, table[index]);
         return null;
     }
 

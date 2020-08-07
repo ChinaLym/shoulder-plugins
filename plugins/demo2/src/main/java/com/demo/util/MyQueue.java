@@ -66,7 +66,7 @@ public class MyQueue<E> {
             return false;
         }
         Node<E> oldTail = this.last;
-        node.prev = oldTail;;
+        node.prev = oldTail;
         this.last = node;
         if (first == null) {
             first = node;
@@ -100,6 +100,7 @@ public class MyQueue<E> {
         }
         E element = first.data;
         first.data = null;
+
         Node<E> second = first.next;
         first = second;
         if (second == null) {
