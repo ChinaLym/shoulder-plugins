@@ -1,7 +1,5 @@
 package com.demo.util;
 
-import org.springframework.lang.NonNull;
-
 import java.util.function.Consumer;
 
 public class MyBtree<E extends Comparable> {
@@ -15,7 +13,7 @@ public class MyBtree<E extends Comparable> {
         private Node<E> left;
         private Node<E> right;
 
-        Node(@NonNull E data){
+        Node(E data){
             this.data = data;
         }
 
@@ -56,7 +54,7 @@ public class MyBtree<E extends Comparable> {
         }
 
     }
-    public  void add(@NonNull E data){
+    public  void add(E data){
         if(root.data == null){
             root.data = data;
             return;
