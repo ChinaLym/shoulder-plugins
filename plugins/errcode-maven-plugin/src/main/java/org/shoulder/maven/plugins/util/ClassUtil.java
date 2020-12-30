@@ -1,4 +1,4 @@
-package org.shoulder.maven.plugins.mojo;
+package org.shoulder.maven.plugins.util;
 
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.logging.SystemStreamLog;
@@ -27,7 +27,7 @@ public class ClassUtil {
     }
 
     @SuppressWarnings({"unchecked"})
-    private static <T> List<Class<? extends T>> filterSonOfClass(Collection<Class<?>> allClass, Class<T> clazz) {
+    public static <T> List<Class<? extends T>> filterSonOfClass(Collection<Class<?>> allClass, Class<T> clazz) {
         List<Class<? extends T>> list = new LinkedList<>();
         log.info("class total num: " + allClass.size());
         try {
@@ -37,7 +37,7 @@ public class ClassUtil {
                 if (isSon) {
                     log.info("MATCH: " + aClass.getName());
                     list.add(aClass);
-                }else {
+                } else {
                     log.debug("Ignored class: " + aClass.getName());
                 }
             }
@@ -48,7 +48,7 @@ public class ClassUtil {
     }
 
     @SuppressWarnings("rawtypes")
-    private static List<Class<?>> getAllClass(String sourcePath, String packageName) {
+    public static List<Class<?>> getAllClass(String sourcePath, String packageName) {
         List<String> classFullNames = convertJavaSourceToClassFullName(packageName, getAllClassFilePath(sourcePath, packageName));
         log.info("total source file num: " + classFullNames.size());
         ArrayList<Class<?>> classes = new ArrayList<>();
@@ -98,7 +98,7 @@ public class ClassUtil {
         return result;
     }
 
-    private static List<String> listFilesAndSelect(File file, FileSelector fileSelector) {
+    public static List<String> listFilesAndSelect(File file, FileSelector fileSelector) {
         List<String> allFile = new LinkedList<>();
         if (file.isDirectory()) {
             File[] files = file.listFiles();
@@ -123,7 +123,7 @@ public class ClassUtil {
     }
 
     @FunctionalInterface
-    interface FileSelector {
+    public interface FileSelector {
         /**
          * 是否包含该文件
          *
@@ -131,6 +131,13 @@ public class ClassUtil {
          * @return
          */
         boolean include(File file);
+
+        class All implements FileSelector {
+            @Override
+            public boolean include(File file) {
+                return true;
+            }
+        }
     }
 
     static abstract class AbstractFileSelector implements FileSelector {
