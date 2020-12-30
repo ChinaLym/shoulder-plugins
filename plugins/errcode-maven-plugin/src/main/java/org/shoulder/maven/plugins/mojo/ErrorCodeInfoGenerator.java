@@ -11,17 +11,21 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.shoulder.core.exception.ErrorCode;
+import org.shoulder.core.util.StringUtils;
 import org.shoulder.maven.plugins.pojo.ErrorCodeJavaDoc;
 import org.shoulder.maven.plugins.util.ClassUtil;
+import org.shoulder.maven.plugins.util.JarUtil;
 
 import javax.annotation.Nonnull;
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 /**
@@ -39,7 +43,7 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
     /**
      * 源码目录
      */
-    @Parameter(defaultValue = "${project.build.sourceDirectory}", required = true, readonly = true)
+    @Parameter(defaultValue = "${project.build.sourceDirectory}", readonly = true)
     private File sourceDirectory;
 
     @Parameter(defaultValue = "${project}", readonly = true)
@@ -86,6 +90,24 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
      */
     @Parameter(property = "genJavaDocTempDir", defaultValue = "${project.build.directory}/shoulderTempDir")
     private File tempDir;
+
+    /**
+     * 依赖分析缓存
+     */
+    @Parameter(property = "enableCache", defaultValue = "true")
+    private boolean enableCache;
+
+    /**
+     * 依赖分析缓存
+     */
+    @Parameter(property = "useCache", defaultValue = "false")
+    private boolean useCache;
+
+    /**
+     * 默认的建议 todo 只能使用一次？
+     */
+    @Parameter(property = "defaultSuggestionInfo", defaultValue = "1.请前往服务器 xxx 目录查看并导出并保留程序运行日志 \\r\\n 2.联系相应开发人员根据保留的日志信息，协助排查")
+    private String defaultSuggestionInfo;
 
     /**
      * 生成的错误码信息格式，默认 properties，根据 fileName 后缀可为 properties，json，默认 properties
@@ -161,9 +183,9 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
             getLog().info("exception(impl ErrorCode) class num:" + exList.size());
             //List<String> exErrorCodeInfoList = generateByExList(errCodeEnumList);
 
-            getLog().info("generate SUCCESS, writing to outputDir: " + outputFile.getAbsolutePath());
-            // 写文件
+            // 写文件 todo 每个类名，注释
             outputErrorCodeInfo(enumErrorCodeInfoList);
+            getLog().info("generate SUCCESS, writing to outputDir: " + outputFile.getAbsolutePath());
 
         } catch (Exception e) {
             throw new MojoExecutionException(e.getMessage());
@@ -175,18 +197,39 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
      * 生成错误码信息，默认将其写入文件
      * @param allErrorCodeInfoList 错误码信息行
      */
-
     private void outputErrorCodeInfo(List<List<String>> allErrorCodeInfoList) {
+        getLog().info("analyzed count: " + allErrorCodeInfoList.size());
+        // 先备份旧的
+        if(FileUtil.exist(outputFile)){
+            FileUtil.move(outputFile, new File(outputFile.getPath() + ".bak"), true);
+            FileUtil.del(outputFile);
+        }
+        FileUtil.touch(outputFile);
         for (List<String> errorCodeInfoGroup : allErrorCodeInfoList) {
+            getLog().info("count: " + errorCodeInfoGroup.size());
             StringBuilder perGroup = new StringBuilder(NEW_LINE + NEW_LINE);
             // 每两行之间插入空格
             int count = 0;
             for (String errorCodeInfo : errorCodeInfoGroup) {
                 perGroup.append(errorCodeInfo)
                         .append(NEW_LINE)
-                        .append((count ++ & 1) == 0 ? NEW_LINE : "");
+                        .append(errorCodeInfo.startsWith(i18nKeyPrefix) && errorCodeInfo.contains(suggestionSuffix) ? NEW_LINE : "");
             }
-            FileUtil.writeString(perGroup.toString(), outputFile, StandardCharsets.UTF_8);
+            FileUtil.appendString(perGroup.toString(), outputFile, StandardCharsets.UTF_8);
+
+            /*getLog().info("count: " + errorCodeInfoGroup.size());
+            List<String> linesToWrite = new ArrayList<>(errorCodeInfoGroup.size() + 2);
+            linesToWrite.add("");
+            linesToWrite.add("");
+            // 每两行之间插入空格
+            int count = 0;
+            for (String errorCodeInfo : errorCodeInfoGroup) {
+                linesToWrite.add(errorCodeInfo);
+                if((count ++ & 1) == 0){
+                    linesToWrite.add("");
+                }
+            }
+            FileUtil.appendLines(linesToWrite, outputFile, StandardCharsets.UTF_8);*/
         }
     }
 
@@ -202,18 +245,31 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
         errCodeEnumList.forEach(errCodeEnumClazz -> {
             // 通过完整类名，获取到对应的 javaDoc
             ClassDoc classDoc = rootDoc.classNamed(errCodeEnumClazz.getName());
+            if(classDoc == null){
+                getLog().error(errCodeEnumClazz.getName() + " without classDoc == null");
+                return;
+            }
             Map<String, FieldDoc> fieldDocMap = Arrays.stream(classDoc.fields()).collect(Collectors.toMap(Doc::name, d -> d));
             // 特定类的包含错误码信息的每一行
             List<String> errorCodeInfo = new LinkedList<>();
             getLog().debug("analyzing Enum: " + errCodeEnumClazz.getName());
+            errorCodeInfo.add("#########################");
             errorCodeInfo.add(genEnumSplitLine(errCodeEnumClazz));
+            errorCodeInfo.add("#########################");
             // 获取所有枚举实例
             ErrorCode[] instances = errCodeEnumClazz.getEnumConstants();
             for (ErrorCode instance : instances) {
                 getLog().debug("analyzing Enum-Item: " + instance);
-                FieldDoc doc = fieldDocMap.get(((Enum)instance).name());
+                String fieldName = ((Enum)instance).name();
+                FieldDoc doc = fieldDocMap.get(fieldName);
+                if(doc == null){
+                    getLog().error(errCodeEnumClazz.getName() + "without FieldDoc(" + fieldName + ") == null");
+                    continue;
+                }
                 ErrorCodeJavaDoc errorCodeJavaDoc = analyzeFieldDoc(doc);
                 String errorCode = instance.getCode();
+                getLog().debug(errCodeEnumClazz.getName() + "." + fieldName + " errorCode=" + errorCode + errorCodeJavaDoc);
+                errorCodeInfo.add("# " + fieldName);
                 errorCodeInfo.add(genDescriptionKey(errorCode) + "=" + errorCodeJavaDoc.description);
                 errorCodeInfo.add(genSuggestionKey(errorCode) + "=" + errorCodeJavaDoc.suggestion);
             }
@@ -253,11 +309,14 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
             ClassDoc classDoc = rootDoc.classNamed(clazz.getName());
             Map<String, FieldDoc> fieldDocMap = Arrays.stream(classDoc.fields())
                     .collect(Collectors.toMap(Doc::name, d -> d));
+            errorCodeInfo.add("#########################");
+            errorCodeInfo.add("# " + clazz.getName());
+            errorCodeInfo.add("#########################");
             for (Field field : fields) {
-                FieldDoc doc = fieldDocMap.get(field.getName());
-                ErrorCodeJavaDoc errorCodeJavaDoc = analyzeFieldDoc(doc);
                 try {
+                    FieldDoc doc = fieldDocMap.get(field.getName());
                     String errorCode = (String) field.get(clazz);
+                    ErrorCodeJavaDoc errorCodeJavaDoc = analyzeFieldDoc(doc);
                     errorCodeInfo.add(genDescriptionKey(errorCode) + "=" + errorCodeJavaDoc.description);
                     errorCodeInfo.add(genSuggestionKey(errorCode) + "=" + errorCodeJavaDoc.suggestion);
                 } catch (IllegalAccessException e) {
@@ -338,28 +397,42 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
 
     /**
      * 分析字段文档，从javadoc注释中提取标签
+     * todo 如果没有 @desc 则直接使用注释，如果没有 @sug 则使用默认值
      */
     @Nonnull
-    private static ErrorCodeJavaDoc analyzeFieldDoc(FieldDoc fieldDoc) {
+    private ErrorCodeJavaDoc analyzeFieldDoc(FieldDoc fieldDoc) {
         ErrorCodeJavaDoc result = new ErrorCodeJavaDoc();
         Tag[] languages = fieldDoc.tags("language");
         if (languages != null && languages.length > 0) {
             result.setLanguage(languages[0].text().trim());
         }
+        if(StringUtils.isBlank(result.language)){
+            result.setLanguage("zh_CN");
+        }
+
         Tag[] descriptions = fieldDoc.tags("desc");
         if (descriptions != null && descriptions.length > 0) {
-            result.setDescription(descriptions[0].text().trim());
+            String description = descriptions[0].text().trim();
+            result.setDescription(description);
         }
+        if(StringUtils.isBlank(result.description)){
+            result.setDescription(fieldDoc.getRawCommentText().trim());
+        }
+
+        result.setSuggestion(defaultSuggestionInfo);
         Tag[] suggestions = fieldDoc.tags("sug");
         if (suggestions != null && suggestions.length > 0) {
-            result.setSuggestion(suggestions[0].text().trim());
+            String suggestion = suggestions[0].text().trim();
+            if(StringUtils.isNotBlank(suggestion)){
+                result.setSuggestion(suggestion);
+            }
         }
         return result;
     }
 
-    private void readJavaDoc(List<String> sourceCode, List<String> classesDirectory){
+    private void readJavaDoc(List<String> sourceCode, List<String> classesDirectory) throws InterruptedException {
         String [] commandArg = {
-                "-doclet", ExtractErrorInfoDoclet.class.getName(),
+                "-doclet", Doclet.class.getName(),
                 "-quiet", // 不产生输出
                 "-encoding", "utf-8",
                 "-classpath"
@@ -371,20 +444,64 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
         getLog().debug("========= classesDirectory =======");
         classesDirectory.forEach(getLog()::debug);
         getLog().debug("==================================");
-        // todo 把这些 jar 解压到 tempDir，然后使用 tempDir
 
+        ExecutorService executor = new ThreadPoolExecutor(8, 8,
+                2, TimeUnit.SECONDS, new LinkedBlockingQueue<>(), Executors.defaultThreadFactory(),
+                new ThreadPoolExecutor.CallerRunsPolicy());
+        if(useCache) {
+            // 使用缓存时，只关注
+            getLog().info("============ use cache ===========");
+        } else {
+            // 先删除整个目录 todo 计时
+            FileUtil.del(tempDir);
+            getLog().info("============ copying classes =============");
+            // 把插件所在工程依赖的第三方 jar 解压到 tempDir，然后使用 tempDir 这个过程太慢了，考虑使用多线程
+            CountDownLatch latch = new CountDownLatch(classesDirectory.size());
+            for (String classPath : classesDirectory) {
+                executor.execute(() -> {
+                    getLog().debug("copying " + classPath);
+                    if(classPath.endsWith(".jar")){
+                        try {
+                            JarUtil.unzipJar(classPath, tempDir.getPath());
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    latch.countDown();
+                });
+            }
+            executor.shutdown();
+            latch.await();
+            getLog().info("============ copy finished =============");
+        }
 
+        // 复制插件所在工程源码
+        for (String classPath : classesDirectory) {
+            File[] files = new File(classPath).listFiles(ff -> StringUtils.isAllLowerCase(ff.getName()) && ff.isDirectory());
+            if(files != null && files.length > 0){
+                for (File file : files) {
+                    // todo 不能保证已经删了的类，class 也删除（数据一致性）
+                    FileUtil.copy(file.getPath(), tempDir.getPath(), true);
+                }
+            }
+        }
         List<String> args = new ArrayList<>(commandArg.length + classesDirectory.size() + sourceCode.size());
         args.addAll(Arrays.stream(commandArg).collect(Collectors.toList()));
         StringJoiner sj = new StringJoiner(",");
         classesDirectory.forEach(sj::add);
         //args.add(sj.toString());
-        // todo 类找不到，类路径需要调整
-        args.add("F:\\files\\test\\path");
+        args.add(tempDir.getPath());
 
         args.addAll(sourceCode);
         String[] docArgs = args.toArray(new String[0]);
         com.sun.tools.javadoc.Main.execute(docArgs);
+
+        // 删掉临时目录
+        if(enableCache){
+            return;
+        }
+        FileUtil.del(tempDir);
+        getLog().debug("del " + tempDir.getPath());
     }
 
     public static class Doclet {
