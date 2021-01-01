@@ -9,18 +9,20 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
-import org.shoulder.core.exception.ErrorCode;
 import org.shoulder.maven.plugins.util.ClassUtil;
-import org.springframework.context.MessageSourceResolvable;
 
 import java.io.File;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * 生成翻译资源包，扫描所有 {@link MessageSourceResolvable} 生成对应的多语言翻译，默认生成中文，英文 key，以注释作为中文翻译
+ * 生成翻译资源包，扫描所有 org.springframework.context.MessageSourceResolvable 生成对应的多语言翻译，默认生成中文，英文 key，以注释作为中文翻译
  *
  * @author lym
  * @goal 生成翻译资源包
@@ -28,6 +30,7 @@ import java.util.stream.Collectors;
  * @phase package
  * @requiresDependencyResolution compile
  */
+@SuppressWarnings({"all"})
 @Mojo(name = "generateI18nResource", defaultPhase = LifecyclePhase.PACKAGE, requiresDependencyResolution = ResolutionScope.COMPILE)
 public class I18nResourceGenerator extends AbstractMojo {
 
@@ -39,8 +42,6 @@ public class I18nResourceGenerator extends AbstractMojo {
      */
     @Parameter(defaultValue = "${project.build.sourceDirectory}", required = true, readonly = true)
     private File sourceDirectory;
-    ;
-
 
     /**
      * 用于获取类加载器
@@ -78,6 +79,8 @@ public class I18nResourceGenerator extends AbstractMojo {
     public I18nResourceGenerator() {
     }
 
+    private static final String MESSAGE_SOURCE_CLASS_NAME = "org.springframework.context.MessageSourceResolvable";
+
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
 
@@ -85,16 +88,20 @@ public class I18nResourceGenerator extends AbstractMojo {
         getLog().info("需要扫描的包路径 scanPackage: " + scanPackage);
         ClassUtil.setClassLoader(getProjectClassLoader(project));
         try {
+            // 列出所有类
+            List<Class<?>> allClasses =
+                    ClassUtil.getAllClass(sourceDirectory.getAbsolutePath(), scanPackage);
 
             //docletEnvironment.getDocTrees().getDocCommentTree(JavacProcessingEnvironment.getElementUtils()).get
 
             // 获取所有多语言实现类
-            List<Class<? extends MessageSourceResolvable>> allI18nAbleList =
-                    ClassUtil.getAllSonOfClass(sourceDirectory.getAbsolutePath(), scanPackage, MessageSourceResolvable.class);
+            List<Class<?>> allI18nAbleList =
+                    ClassUtil.filterSonOfClass(allClasses, MESSAGE_SOURCE_CLASS_NAME);
 
             // 过滤出所有枚举类
-            List<Class<? extends MessageSourceResolvable>> i18nAbleEnumList = allI18nAbleList.stream()
+            List<Class<Enum>> i18nAbleEnumList = allI18nAbleList.stream()
                     .filter(Class::isEnum)
+                    .map(c -> (Class<Enum>) c)
                     .collect(Collectors.toList());
 
             getLog().info("enum(impl MessageSourceResolvable) class num:" + i18nAbleEnumList.size());
@@ -138,51 +145,42 @@ public class I18nResourceGenerator extends AbstractMojo {
     /**
      * 根据枚举的所有枚举值和对应注释生成多语言文件的每行
      *
-     * @param i18nEnumList 枚举类类列表
+     * @param i18nEnumList 枚举类类列表 ? extends MessageSourceResolvable
      * @return 对应的多语言翻译文件内容 key 枚举名，value 包含的一行行内容
      */
-    private Map<String, List<String>> generateI18nResourceByEnumList(List<Class<? extends MessageSourceResolvable>> i18nEnumList) {
+    private Map<String, List<String>> generateI18nResourceByEnumList(List<Class<Enum>> i18nEnumList) {
 
         // 所有行
         Map<String, List<String>> i18nInfoList = new HashMap<>(i18nEnumList.size());
 
-        i18nEnumList.forEach(errCodeEnumClazz -> {
+        i18nEnumList.forEach(i18nEnum -> {
 
             // 特定类的包含错误码信息的每一行
             List<String> errorCodeInfo = new LinkedList<>();
-            getLog().debug("analyzing Enum: " + errCodeEnumClazz.getName());
-            errorCodeInfo.add(genEnumSplitLine(errCodeEnumClazz));
+            getLog().debug("analyzing Enum: " + i18nEnum.getName());
+            errorCodeInfo.add(genEnumSplitLine(i18nEnum));
             // 获取所有枚举实例
-            MessageSourceResolvable[] instances = errCodeEnumClazz.getEnumConstants();
-            for (MessageSourceResolvable instance : instances) {
+            Method getCodesMethod = ClassUtil.findNoParamMethod(i18nEnum, "getCodes");
+            Enum[] instances = i18nEnum.getEnumConstants();
+            for (Enum instance : instances) {
                 getLog().debug("analyzing Enum-Item: " + instance);
-                String[] errorCodes = instance.getCodes();
-                if(errorCodes != null && errorCodes.length > 0){
-                    for (String errorCode : errorCodes) {
-                        // todo value 从 java doc 中读取？
-                        errorCodeInfo.add(formatI18nKey(errorCode) + "=");
+                try {
+                    String[] errorCodes = (String[]) getCodesMethod.invoke(instance);
+                    if (errorCodes != null && errorCodes.length > 0) {
+                        for (String errorCode : errorCodes) {
+                            // todo value 从 java doc 中读取？
+                            errorCodeInfo.add(formatI18nKey(errorCode) + "=");
+                        }
                     }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
-            i18nInfoList.put(errCodeEnumClazz.getSimpleName(), errorCodeInfo);
+            i18nInfoList.put(i18nEnum.getSimpleName(), errorCodeInfo);
         });
         return i18nInfoList;
     }
 
-
-    /**
-     * 根据异常型错误码生成错误码对应文档的每行
-     *
-     * @param errCodeExList 异常类列表
-     * @return 错误码信息行
-     */
-
-    private List<String> generateByExList(List<Class<? extends ErrorCode>> errCodeExList) {
-        List<String> errorCodeInfo = new LinkedList<>();
-        for (Class<? extends ErrorCode> ex : errCodeExList) {
-        }
-        return Collections.emptyList();
-    }
 
     /**
      * 生成完整 key
@@ -203,7 +201,7 @@ public class I18nResourceGenerator extends AbstractMojo {
      * @return 错误码枚举的分割注释 key
      */
 
-    private String genEnumSplitLine(Class<? extends MessageSourceResolvable> errCodeEnumClazz) {
+    private String genEnumSplitLine(Class<?> errCodeEnumClazz) {
         return "# " + errCodeEnumClazz.getName();
     }
 

@@ -1,7 +1,7 @@
 package org.shoulder.maven.plugins.mojo;
 
 import com.sun.javadoc.*;
-import org.shoulder.core.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.shoulder.maven.plugins.pojo.ErrorCodeJavaDoc;
 import org.shoulder.maven.plugins.util.ClassUtil;
 

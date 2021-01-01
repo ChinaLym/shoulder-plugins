@@ -27,6 +27,8 @@
     </contributors>
 
     <properties>
+        <hutool.version>5.4.3</hutool.version>
+
         <java.version>11</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
@@ -48,22 +50,10 @@
         </dependency>-->
 
         <dependency>
-            <groupId>cn.itlym</groupId>
-            <artifactId>shoulder-core</artifactId>
-            <version>0.5</version>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-core</artifactId>
+            <version>${hutool.version}</version>
         </dependency>
-
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-web</artifactId>
-            <version>5.2.11.RELEASE</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-context</artifactId>
-            <version>5.2.11.RELEASE</version>
-        </dependency>
-
 
         <dependency>
             <groupId>com.google.errorprone</groupId>

@@ -4,10 +4,12 @@ import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.logging.SystemStreamLog;
 
 import java.io.File;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 在maven插件中是加载不到目标项目的类及目标项目引用的第三方所提供的类的，
@@ -22,11 +24,48 @@ public class ClassUtil {
 
     private static final Log log = new SystemStreamLog();
 
+    private static final ConcurrentHashMap<Class, ConcurrentHashMap<String, Method>> methodCache = new ConcurrentHashMap<>(16);
+
+    /**
+     *  支持获取当前类和父类的public方法
+     */
+    public static Method findNoParamMethod(Class clazz, String methodName) {
+        ConcurrentHashMap<String, Method> methods = methodCache.computeIfAbsent(clazz, c -> new ConcurrentHashMap<>());
+        return methods.computeIfAbsent(methodName, n -> {
+            try {
+                return clazz.getMethod(methodName);
+            } catch (NoSuchMethodException e) {
+                throw new IllegalStateException("no such method", e);
+            }
+        });
+    }
+
     public static <T> List<Class<? extends T>> getAllSonOfClass(String sourcePath, String packageName, Class<T> clazz) {
         return filterSonOfClass(getAllClass(sourcePath, packageName), clazz);
     }
 
-    @SuppressWarnings({"unchecked"})
+    public static List<Class<?>> filterSonOfClass(Collection<Class<?>> allClass, String fullClassName) {
+        log.info("class total num: " + allClass.size());
+        List<Class<?>> list = new LinkedList<>();
+        try {
+            Class<?> clazz = classLoader.loadClass(fullClassName);
+            for (Class aClass : allClass) {
+                boolean isSon = clazz.isAssignableFrom(aClass) && !clazz.equals(aClass);
+                // 继承或实现类，去除自身
+                if (isSon) {
+                    log.info("MATCH: " + aClass.getName());
+                    list.add(aClass);
+                } else {
+                    log.debug("Ignored class: " + aClass.getName());
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("filterSonOfClass fail", e);
+        }
+        return list;
+    }
+
+
     public static <T> List<Class<? extends T>> filterSonOfClass(Collection<Class<?>> allClass, Class<T> clazz) {
         List<Class<? extends T>> list = new LinkedList<>();
         log.info("class total num: " + allClass.size());
@@ -116,6 +155,9 @@ public class ClassUtil {
         return allFile;
     }
 
+    /**
+     * 默认使用自己的类加载器
+     */
     private static ClassLoader classLoader = ClassUtil.class.getClassLoader();
 
     public static void setClassLoader(ClassLoader clazzLoader) {

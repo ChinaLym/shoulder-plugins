@@ -152,12 +152,15 @@ public class ExtClassDoc {
 	 * @return 不匹配返回-1,匹配返回>=0的值
 	 */
 	private static int match(Method method, MethodDoc doc) {
-		if (!method.getName().equals(doc.name()))return -1;
+		if (!method.getName().equals(doc.name())) {
+			return -1;
+		}
 		Class<?>[] paramTypes = method.getParameterTypes();
 		String s1 = doc.signature().replaceAll("\\((.*)\\)", "$1");
 		String[] signature = s1.isEmpty()?new String[0]:s1.replace(" ", "").split(",");
-		if (paramTypes.length != signature.length)
+		if (paramTypes.length != signature.length) {
 			return -1;
+		}
 		int score = 0;
 		for (int i = 0; i < paramTypes.length; ++i) {
 			if (paramTypes[i].getName().equals(signature[i]))
