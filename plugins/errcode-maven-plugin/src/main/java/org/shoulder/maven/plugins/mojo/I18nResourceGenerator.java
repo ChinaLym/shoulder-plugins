@@ -1,6 +1,5 @@
 package org.shoulder.maven.plugins.mojo;
 
-import jdk.javadoc.doclet.DocletEnvironment;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -33,9 +32,6 @@ import java.util.stream.Collectors;
 @SuppressWarnings({"all"})
 @Mojo(name = "generateI18nResource", defaultPhase = LifecyclePhase.PACKAGE, requiresDependencyResolution = ResolutionScope.COMPILE)
 public class I18nResourceGenerator extends AbstractMojo {
-
-
-    private DocletEnvironment docletEnvironment;
 
     /**
      * 源码目录，扫描多语言翻译的路径，用于提取翻译
