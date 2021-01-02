@@ -24,13 +24,13 @@ public class ClassUtil {
 
     private static final Log log = new SystemStreamLog();
 
-    private static final ConcurrentHashMap<Class, ConcurrentHashMap<String, Method>> methodCache = new ConcurrentHashMap<>(16);
+    private static final ConcurrentHashMap<Class, ConcurrentHashMap<String, Method>> METHOD_CACHE = new ConcurrentHashMap<>(16);
 
     /**
      *  支持获取当前类和父类的public方法
      */
     public static Method findNoParamMethod(Class clazz, String methodName) {
-        ConcurrentHashMap<String, Method> methods = methodCache.computeIfAbsent(clazz, c -> new ConcurrentHashMap<>());
+        ConcurrentHashMap<String, Method> methods = METHOD_CACHE.computeIfAbsent(clazz, c -> new ConcurrentHashMap<>());
         return methods.computeIfAbsent(methodName, n -> {
             try {
                 return clazz.getMethod(methodName);
@@ -48,7 +48,7 @@ public class ClassUtil {
         log.info("class total num: " + allClass.size());
         List<Class<?>> list = new LinkedList<>();
         try {
-            Class<?> clazz = classLoader.loadClass(fullClassName);
+            Class<?> clazz = getClassLoader().loadClass(fullClassName);
             for (Class aClass : allClass) {
                 boolean isSon = clazz.isAssignableFrom(aClass) && !clazz.equals(aClass);
                 // 继承或实现类，去除自身
@@ -94,7 +94,7 @@ public class ClassUtil {
         // 利用这些绝对路径和反射机制得类对象
         for (String classFullName : classFullNames) {
             try {
-                classes.add(classLoader.loadClass(classFullName));
+                classes.add(getClassLoader().loadClass(classFullName));
                 log.debug("loaded class: " + classFullName);
             } catch (ClassNotFoundException e) {
                 log.warn("class not found " + classFullName, e);
@@ -158,10 +158,18 @@ public class ClassUtil {
     /**
      * 默认使用自己的类加载器
      */
-    private static ClassLoader classLoader = ClassUtil.class.getClassLoader();
+    private static ThreadLocal<ClassLoader> classLoader = ThreadLocal.withInitial(ClassUtil.class::getClassLoader);
 
     public static void setClassLoader(ClassLoader clazzLoader) {
-        classLoader = clazzLoader;
+        classLoader.set(clazzLoader);
+    }
+
+    public static void clean(){
+        classLoader.remove();
+    }
+
+    public static ClassLoader getClassLoader(){
+        return classLoader.get();
     }
 
     @FunctionalInterface

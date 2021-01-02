@@ -23,8 +23,6 @@ pom.xml
                     <errorCodePrefix>0x000a</errorCodePrefix>
                     <!-- 【必填】要生成错误码文件，扫描的包路径，通常为组件错误码枚举/常量类所在包路径，越精确，越能减少插件构建时间 -->
                     <scanPackage>com.example.demo1</scanPackage>
-                    <!-- 是否使用上次构建的缓存 -->
-                    <useCache>true</useCache>
                     <!-- @sug 标签缺少时，补充的默认值 -->
                     <defaultSuggestionInfo>1.请前往服务器 xxx 目录查看并导出并保留程序运行日志 \r\n 2.联系相应开发人员根据保留的日志信息，协助排查。</defaultSuggestionInfo>
                 </configuration>
