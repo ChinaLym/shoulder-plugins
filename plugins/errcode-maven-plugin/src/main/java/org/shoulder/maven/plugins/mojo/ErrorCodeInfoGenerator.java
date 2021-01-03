@@ -90,7 +90,7 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
     /**
      * 生成错误码信息文件的目标路径，错误码信息文件名称，推荐为应用 标识_error_code.properties
      */
-    @Parameter(property = "outputFile", defaultValue = "${project.build.directory}/errorCode.properties")
+    @Parameter(property = "outputFile", defaultValue = "${project.build.outputDirectory}/language/zh_CN/errorCode.properties")
     private File outputFile;
 
     /**
