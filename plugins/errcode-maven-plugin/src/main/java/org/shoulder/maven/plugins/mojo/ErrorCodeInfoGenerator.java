@@ -135,6 +135,11 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
         getLog().info("需要扫描的包路径 scanPackage: " + scanPackage);
         ClassUtil.setClassLoader(getProjectClassLoader(project));
         try {
+            // 注册 shoulder 的 AppInfo 信息
+            Class appInfoClass = ClassUtil.getClassLoader().loadClass("org.shoulder.core.context.AppInfo");
+            Method appInfo_initErrorCodePrefix = appInfoClass.getMethod("initErrorCodePrefix", String.class);
+            appInfo_initErrorCodePrefix.invoke(appInfoClass, errorCodePrefix);
+
             // 列出所有类
             List<Class<?>> allClasses =
                     ClassUtil.getAllClass(sourceDirectory.getAbsolutePath(), scanPackage);
