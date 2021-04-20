@@ -23,6 +23,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -50,6 +51,12 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
 
     @Parameter(defaultValue = "${project}", readonly = true)
     private MavenProject project;
+
+    /**
+     * 源码文件编码 默认 UTF-8
+     */
+    @Parameter(property = "sourceCodeCharset", defaultValue = "UTF-8")
+    private String sourceCodeCharset;
 
     /**
      * 错误码前缀（与应用挂钩），必填，如 "0x0001" 代表用户中心
@@ -88,6 +95,12 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
     private String defaultSuggestionInfo;
 
     /**
+     * 输出文件编码 默认 UTF-8
+     */
+    @Parameter(property = "outputCharset", defaultValue = "UTF-8")
+    private String outputCharset;
+
+    /**
      * 生成错误码信息文件的目标路径，错误码信息文件名称，推荐为应用 标识_error_code.properties
      */
     @Parameter(property = "outputFile", defaultValue = "${project.build.outputDirectory}/language/zh_CN/errorCode.properties")
@@ -106,7 +119,6 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
     private String formatType;
 
 
-
     // 生成错误码信息文件的目标路径，错误码信息文件名称，推荐为应用 标识_error_code.properties
     /*@Parameter(property = "tempDir", defaultValue = "${project.build.directory}/shoulderTempDir")
     private File tempDir;
@@ -122,6 +134,8 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
 
     public static String NEW_LINE = "\r\n";//System.getProperty("line.separator");
 
+    public Charset OUTPUT_CHARSET;
+
     private static ThreadLocal<RootDoc> rootDoc = new ThreadLocal<>();
 
     public ErrorCodeInfoGenerator() {
@@ -133,9 +147,12 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
         getLog().info("=====================【START】 errcode-maven-plugin =====================");
         getLog().info("源码目录 sourceDirectory: " + sourceDirectory);
         getLog().info("需要扫描的包路径 scanPackage: " + scanPackage);
+
+        OUTPUT_CHARSET = Charset.forName(outputCharset);
+
         ClassUtil.setClassLoader(getProjectClassLoader(project));
         try {
-            // 注册 shoulder 的 AppInfo 信息
+            // 注册 shoulder 的 AppInfo 信息 todo，如果没有，则尝试读取 application.properties / application.yml "shoulder.application.errorCodePrefix"
             Class appInfoClass = ClassUtil.getClassLoader().loadClass("org.shoulder.core.context.AppInfo");
             Method appInfo_initErrorCodePrefix = appInfoClass.getMethod("initErrorCodePrefix", String.class);
             appInfo_initErrorCodePrefix.invoke(appInfoClass, errorCodePrefix);
@@ -200,6 +217,7 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
             getLog().info("=====================【END】 errcode-maven-plugin =====================");
 
         } catch (Exception e) {
+            getLog().error("shoulder-error-code-plugin fail, please send the bug info to shoulder.org~", e);
             throw new MojoExecutionException(e.getMessage());
         }finally {
             rootDoc.remove();
@@ -216,23 +234,24 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
     private void outputErrorCodeInfo(List<List<String>> allErrorCodeInfoList) {
         getLog().info("number of analyzed class: " + allErrorCodeInfoList.size());
         // 先备份旧的
-        if (FileUtil.exist(outputFile)) {
-            FileUtil.move(outputFile, new File(outputFile.getPath() + ".bak"), true);
-            FileUtil.del(outputFile);
-        }
-        FileUtil.touch(outputFile);
-        for (List<String> errorCodeInfoGroup : allErrorCodeInfoList) {
-            getLog().debug("line num: " + errorCodeInfoGroup.size());
-            StringBuilder perGroup = new StringBuilder(NEW_LINE);
-            // 每两行之间插入空格
-            int count = 0;
-            for (String errorCodeInfo : errorCodeInfoGroup) {
-                perGroup.append(errorCodeInfo)
-                        .append(NEW_LINE)
-                        //.append(errorCodeInfo.startsWith(i18nKeyPrefix) && errorCodeInfo.contains(suggestionSuffix) ? NEW_LINE : "")
-                ;
+        try{
+            if (FileUtil.exist(outputFile)) {
+                FileUtil.move(outputFile, new File(outputFile.getPath() + ".bak"), true);
+                FileUtil.del(outputFile);
             }
-            FileUtil.appendString(perGroup.toString(), outputFile, StandardCharsets.UTF_8);
+            FileUtil.touch(outputFile);
+            for (List<String> errorCodeInfoGroup : allErrorCodeInfoList) {
+                getLog().debug("line num: " + errorCodeInfoGroup.size());
+                StringBuilder perGroup = new StringBuilder(NEW_LINE);
+                // 每两行之间插入空格
+                int count = 0;
+                for (String errorCodeInfo : errorCodeInfoGroup) {
+                    perGroup.append(errorCodeInfo)
+                            .append(NEW_LINE)
+                    //.append(errorCodeInfo.startsWith(i18nKeyPrefix) && errorCodeInfo.contains(suggestionSuffix) ? NEW_LINE : "")
+                    ;
+                }
+                FileUtil.appendString(perGroup.toString(), outputFile, OUTPUT_CHARSET);
 
             /*getLog().info("count: " + errorCodeInfoGroup.size());
             List<String> linesToWrite = new ArrayList<>(errorCodeInfoGroup.size() + 2);
@@ -246,8 +265,12 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
                     linesToWrite.add("");
                 }
             }
-            FileUtil.appendLines(linesToWrite, outputFile, StandardCharsets.UTF_8);*/
+            FileUtil.appendLines(linesToWrite, outputFile, OUTPUT_CHARSET);*/
+            }
+        }catch (Exception e){
+            getLog().error("outputErrorCodeInfo FAIL", e);
         }
+
     }
 
 
@@ -324,7 +347,7 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
         List<String> errorCodeInfo = new LinkedList<>();
         for (Class clazz : errCodeConstantClassList) {
             // 列出全部 public static String 常量字段
-            List<Field> fields = Arrays.stream(clazz.getFields())
+            List<Field> fields = Arrays.stream(clazz.getDeclaredFields())
                     .filter(f -> f.getType() == String.class)
                     .filter(f -> Modifier.isStatic(f.getModifiers()))
                     .collect(Collectors.toList());
@@ -340,6 +363,9 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
             for (Field field : fields) {
                 try {
                     FieldDoc doc = fieldDocMap.get(field.getName());
+                    if(doc == null){
+                        getLog().warn(clazz.getName() + "#" + field.getName() + " missing fieldDoc! Skip!");
+                    }
                     String errorCode = (String) field.get(clazz);
                     ErrorCodeJavaDoc errorCodeJavaDoc = analyzeFieldDoc(doc);
                     errorCodeInfo.add(genDescriptionKey(errorCode) + "=" + errorCodeJavaDoc.description);
@@ -426,9 +452,12 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
      * 分析字段文档，从javadoc注释中提取标签
      */
     @Nonnull
-    private ErrorCodeJavaDoc analyzeFieldDoc(FieldDoc fieldDoc) {
+    private ErrorCodeJavaDoc analyzeFieldDoc(@Nonnull FieldDoc fieldDoc) {
         ErrorCodeJavaDoc result = new ErrorCodeJavaDoc();
         Log log = getLog();
+        if(fieldDoc == null){
+            throw new IllegalStateException( "fieldDoc == null!");
+        }
         String location = fieldDoc.getClass().getName() + "#" + fieldDoc.name();
         Tag[] languages = fieldDoc.tags("language");
         if (languages != null && languages.length > 0) {
@@ -469,7 +498,7 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
                     // 标签开头则取第一个标签
                     description = fieldDoc.tags()[0].text().trim();
                 } else {
-                    // 否则取第一行
+                    // 否则取第一行 ? replace(\r\n, \\r\\n)
                     int index = description.length();
                     int indexR = description.indexOf('\r');
                     int indexN = description.indexOf('\n');
@@ -537,7 +566,7 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
         String[] commandArg = {
                 "-doclet", Doclet.class.getName(),
                 "-quiet", // 不产生输出
-                "-encoding", "utf-8",
+                "-encoding", sourceCodeCharset.toLowerCase(),
                 "-classpath"
         };
         getLog().debug("=========== sourceCodes ==========");
