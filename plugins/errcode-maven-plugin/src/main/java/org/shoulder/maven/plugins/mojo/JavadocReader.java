@@ -15,7 +15,7 @@ import static com.google.common.base.Preconditions.*;
 /**
  * 读取指定java源文件的javadoc信息
  *
- * @author guyadong
+ * @author lym
  */
 public class JavadocReader {
     private static RootDoc root = null;

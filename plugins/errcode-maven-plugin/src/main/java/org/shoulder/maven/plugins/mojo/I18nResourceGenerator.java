@@ -10,6 +10,7 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.shoulder.maven.plugins.util.ClassUtil;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -30,6 +31,7 @@ import java.util.stream.Collectors;
  * @requiresDependencyResolution compile
  */
 @SuppressWarnings({"all"})
+@ThreadSafe
 @Mojo(name = "generateI18nResource", defaultPhase = LifecyclePhase.PACKAGE, requiresDependencyResolution = ResolutionScope.COMPILE)
 public class I18nResourceGenerator extends AbstractMojo {
 
@@ -58,13 +60,13 @@ public class I18nResourceGenerator extends AbstractMojo {
     private String i18nKeyPrefix;
 
     /**
-     * 生成错误码信息文件的目标路径，默认为 output/language
+     * 生成多语言信息文件的目标路径，默认为 output/language
      */
     @Parameter(property = "outputFile", defaultValue = "output/language")
     private File outputFile;
 
     /**
-     * 生成的错误码信息格式，默认 properties，可为 properties xml
+     * 生成的多语言信息格式，默认 properties，可为 properties xml
      */
     private String formatType;
 
@@ -151,7 +153,7 @@ public class I18nResourceGenerator extends AbstractMojo {
 
         i18nEnumList.forEach(i18nEnum -> {
 
-            // 特定类的包含错误码信息的每一行
+            // 特定类的包含多语言信息的每一行
             List<String> errorCodeInfo = new LinkedList<>();
             getLog().debug("analyzing Enum: " + i18nEnum.getName());
             errorCodeInfo.add(genEnumSplitLine(i18nEnum));
@@ -191,10 +193,10 @@ public class I18nResourceGenerator extends AbstractMojo {
 
 
     /**
-     * 生成错误码枚举的分割行注释
+     * 生成多语言枚举的分割行注释
      *
-     * @param errCodeEnumClazz 错误码枚举
-     * @return 错误码枚举的分割注释 key
+     * @param errCodeEnumClazz 多语言枚举
+     * @return 多语言枚举的分割注释 key
      */
 
     private String genEnumSplitLine(Class<?> errCodeEnumClazz) {

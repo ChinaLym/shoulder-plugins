@@ -24,7 +24,6 @@ import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -42,6 +41,10 @@ import java.util.stream.Collectors;
 @ThreadSafe
 @Mojo(name = "generateErrorCodeInfo", defaultPhase = LifecyclePhase.PACKAGE, requiresDependencyResolution = ResolutionScope.COMPILE)
 public class ErrorCodeInfoGenerator extends AbstractMojo {
+
+    private static final String ERRORCODE_CLASS = "org.shoulder.core.exception.ErrorCode";
+
+    private static final String APPINFO_CLASS = "org.shoulder.core.context.AppInfo";
 
     /**
      * 源码目录
@@ -153,7 +156,7 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
         ClassUtil.setClassLoader(getProjectClassLoader(project));
         try {
             // 注册 shoulder 的 AppInfo 信息 todo，如果没有，则尝试读取 application.properties / application.yml "shoulder.application.errorCodePrefix"
-            Class appInfoClass = ClassUtil.getClassLoader().loadClass("org.shoulder.core.context.AppInfo");
+            Class appInfoClass = ClassUtil.getClassLoader().loadClass(APPINFO_CLASS);
             Method appInfo_initErrorCodePrefix = appInfoClass.getMethod("initErrorCodePrefix", String.class);
             appInfo_initErrorCodePrefix.invoke(appInfoClass, errorCodePrefix);
 
@@ -163,7 +166,7 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
 
             // 获取所有错误码实现类
             List<Class<?>> allErrorCodeImplList =
-                    ClassUtil.filterSonOfClass(allClasses, "org.shoulder.core.exception.ErrorCode");
+                    ClassUtil.filterSonOfClass(allClasses, ERRORCODE_CLASS);
 
             // 获取所有规范命名的错误码常量类 【类名中包含 ErrorCode】 且不是 ErrorCode 的子类
             List<Class<?>> allErrorCodeConstantClasses = allClasses.stream()
@@ -219,7 +222,7 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
         } catch (Exception e) {
             getLog().error("shoulder-error-code-plugin fail, please send the bug info to shoulder.org~", e);
             throw new MojoExecutionException(e.getMessage());
-        }finally {
+        } finally {
             rootDoc.remove();
             ClassUtil.clean();
         }
@@ -234,7 +237,7 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
     private void outputErrorCodeInfo(List<List<String>> allErrorCodeInfoList) {
         getLog().info("number of analyzed class: " + allErrorCodeInfoList.size());
         // 先备份旧的
-        try{
+        try {
             if (FileUtil.exist(outputFile)) {
                 FileUtil.move(outputFile, new File(outputFile.getPath() + ".bak"), true);
                 FileUtil.del(outputFile);
@@ -267,7 +270,7 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
             }
             FileUtil.appendLines(linesToWrite, outputFile, OUTPUT_CHARSET);*/
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             getLog().error("outputErrorCodeInfo FAIL", e);
         }
 
@@ -363,7 +366,7 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
             for (Field field : fields) {
                 try {
                     FieldDoc doc = fieldDocMap.get(field.getName());
-                    if(doc == null){
+                    if (doc == null) {
                         getLog().warn(clazz.getName() + "#" + field.getName() + " missing fieldDoc! Skip!");
                     }
                     String errorCode = (String) field.get(clazz);
@@ -455,8 +458,8 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
     private ErrorCodeJavaDoc analyzeFieldDoc(@Nonnull FieldDoc fieldDoc) {
         ErrorCodeJavaDoc result = new ErrorCodeJavaDoc();
         Log log = getLog();
-        if(fieldDoc == null){
-            throw new IllegalStateException( "fieldDoc == null!");
+        if (fieldDoc == null) {
+            throw new IllegalStateException("fieldDoc == null!");
         }
         String location = fieldDoc.getClass().getName() + "#" + fieldDoc.name();
         Tag[] languages = fieldDoc.tags("language");
@@ -470,7 +473,7 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
         Tag[] descriptions = fieldDoc.tags("desc");
         if (descriptions != null && descriptions.length > 0) {
             String description = toOneLine(descriptions[0].text());
-            if(StrUtil.isNotBlank(description)){
+            if (StrUtil.isNotBlank(description)) {
                 result.setDescription(description);
             } else {
                 log.info("empty @desc at " + location);
@@ -492,9 +495,9 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
         if (StrUtil.isBlank(result.description)) {
             // 如果没有 @desc
             String allComment = fieldDoc.getRawCommentText().trim();
-            if(StrUtil.isNotBlank(allComment)){
+            if (StrUtil.isNotBlank(allComment)) {
                 String description = allComment;
-                if("@".equals(allComment.charAt(0))){
+                if ("@".equals(allComment.charAt(0))) {
                     // 标签开头则取第一个标签
                     description = fieldDoc.tags()[0].text().trim();
                 } else {
@@ -502,23 +505,23 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
                     int index = description.length();
                     int indexR = description.indexOf('\r');
                     int indexN = description.indexOf('\n');
-                    if(indexR > 0 && indexN > 0){
+                    if (indexR > 0 && indexN > 0) {
                         index = Math.min(index, indexR);
                         index = Math.min(index, indexN);
                     }
-                    if(index != description.length()){
+                    if (index != description.length()) {
                         description = description.substring(0, index);
                     }
                 }
                 result.setDescription(description);
-            }else {
+            } else {
                 //String tip = " please add javaDoc, or can't generate description";
                 String tip = " 请补充注释，否则无法生成错误码描述";
                 System.err.println(fieldDoc.position() + tip);
             }
         }
 
-        if(StrUtil.isBlank(result.description)){
+        if (StrUtil.isBlank(result.description)) {
             result.description = ensureEndWith(result.description, "。");
         }
         result.suggestion = ensureEndWith(result.suggestion, "。");
@@ -528,27 +531,27 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
     /**
      * 确保 text 以 endWith 结尾
      */
-    private static String ensureEndWith(String text, String endWith){
-        if(StrUtil.isEmpty(text)){
+    private static String ensureEndWith(String text, String endWith) {
+        if (StrUtil.isEmpty(text)) {
             return endWith;
         }
-        if(StrUtil.isEmpty(endWith)){
+        if (StrUtil.isEmpty(endWith)) {
             return text;
         }
-        if(text.endsWith(endWith)){
+        if (text.endsWith(endWith)) {
             return text;
         }
         return text + endWith;
     }
 
-    private static String toOneLine(String text){
-        if(text.contains("\r") || text.contains("\n")){
+    private static String toOneLine(String text) {
+        if (text.contains("\r") || text.contains("\n")) {
             String[] processText = text.split("\r|\n");
             StringBuilder sb = new StringBuilder(text.length());
             String line = "";
             for (int i = 0; i < processText.length; i++) {
                 line = processText[i].trim();
-                if(line.isBlank()){
+                if (line.isBlank()) {
                     // 处理连续多空个行问题
                     continue;
                 }
