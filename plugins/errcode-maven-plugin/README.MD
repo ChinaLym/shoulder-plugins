@@ -15,8 +15,8 @@ pom.xml
 
             <!-- 自动生成错误码以及对应的翻译 可以在 target 目录生成所有实现 ErrorCode 接口错误码枚举类的翻译文件 -->
             <plugin>
-                <groupId>cn.itlym.shoulder</groupId>
-                <artifactId>errcode-maven-plugin</artifactId>
+                <groupId>cn.itlym</groupId>
+                <artifactId>shoulder-maven-plugin</artifactId>
                 <version>0.1-SNAPSHOT</version>
                 <configuration>
                     <!-- 【必填】本组件对应的错误码前缀 -->

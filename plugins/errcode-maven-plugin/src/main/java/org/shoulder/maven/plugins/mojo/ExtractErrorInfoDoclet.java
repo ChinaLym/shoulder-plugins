@@ -85,7 +85,7 @@ public class ExtractErrorInfoDoclet extends Doclet {
 
 
             try (FileWriter fw = new FileWriter(new File(translateDir + File.separator + "translate.properties"))) {
-                properties.store(fw, "generate by shoulder.errcode-maven-plugin");
+                properties.store(fw, "generate by shoulder.shoulder-maven-plugin:generateErrorCodeInfo");
             }
         } catch (IOException e) {
             e.printStackTrace();

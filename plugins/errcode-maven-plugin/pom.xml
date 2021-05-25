@@ -4,9 +4,9 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>cn.itlym.shoulder</groupId>
+    <groupId>cn.itlym</groupId>
     <!--插件命名遵守${prefix}-maven-plugin-->
-    <artifactId>errcode-maven-plugin</artifactId>
+    <artifactId>shoulder-maven-plugin</artifactId>
     <version>0.1-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
 
@@ -157,7 +157,7 @@
                     <execution>
                         <id>attach-sources</id>
                         <!-- let it work when mvn package -->
-                        <phase>deploy</phase>
+                        <phase>verify</phase>
                         <goals>
                             <goal>jar</goal>
                             <goal>jar-no-fork</goal>
@@ -180,7 +180,7 @@
                 <executions>
                     <execution>
                         <id>attach-javadocs</id>
-                        <phase>deploy</phase>
+                        <phase>verify</phase>
                         <goals>
                             <goal>jar</goal>
                         </goals>
@@ -200,7 +200,7 @@
                 <executions>
                     <execution>
                         <id>sign-artifacts</id>
-                        <phase>deploy</phase>
+                        <phase>verify</phase>
                         <goals>
                             <goal>sign</goal>
                         </goals>

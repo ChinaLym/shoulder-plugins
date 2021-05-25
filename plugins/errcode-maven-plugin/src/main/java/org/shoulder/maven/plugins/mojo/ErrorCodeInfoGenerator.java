@@ -147,7 +147,7 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
 
-        getLog().info("=====================【START】 errcode-maven-plugin =====================");
+        getLog().info("=====================【START】 shoulder-maven-plugin:generateErrorCodeInfo =====================");
         getLog().info("源码目录 sourceDirectory: " + sourceDirectory);
         getLog().info("需要扫描的包路径 scanPackage: " + scanPackage);
 
@@ -217,7 +217,7 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
             outputErrorCodeInfo(enumErrorCodeInfoList);
             getLog().info("generate SUCCESS, writing to outputDir: " + outputFile.getAbsolutePath());
 
-            getLog().info("=====================【END】 errcode-maven-plugin =====================");
+            getLog().info("=====================【END】 shoulder-maven-plugin:generateErrorCodeInfo =====================");
 
         } catch (Exception e) {
             getLog().error("shoulder-error-code-plugin fail, please send the bug info to shoulder.org~", e);
