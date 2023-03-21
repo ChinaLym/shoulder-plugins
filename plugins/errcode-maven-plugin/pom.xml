@@ -30,7 +30,7 @@
         <hutool.version>5.8.15</hutool.version>
         <guava.version>31.1-jre</guava.version>
 
-        <java.version>11</java.version>
+        <java.version>8</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -90,7 +90,7 @@
             <version>1.8</version>
             <scope>system</scope>
 <!--            jdk 有 tools.jar、dt.jar, jre 没有，便携式，或者安装jre路径覆盖jdk，会导致本机找不到 tools.jar-->
-            <systemPath>G:/Program Files (x86)/Java/jdk1.8.0_72/lib/tools.jar</systemPath>
+            <systemPath>/Library/Java/JavaVirtualMachines/jdk1.8.0_181.jdk/Contents/Home/lib/tools.jar</systemPath>
         </dependency>
 <!--        <dependency>-->
 <!--            <groupId>com.sun</groupId>-->

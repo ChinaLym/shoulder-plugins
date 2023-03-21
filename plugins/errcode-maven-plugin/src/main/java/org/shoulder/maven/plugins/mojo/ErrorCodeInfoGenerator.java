@@ -2,7 +2,11 @@ package org.shoulder.maven.plugins.mojo;
 
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.StrUtil;
-import com.sun.javadoc.*;
+import com.sun.javadoc.ClassDoc;
+import com.sun.javadoc.Doc;
+import com.sun.javadoc.FieldDoc;
+import com.sun.javadoc.RootDoc;
+import com.sun.javadoc.Tag;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -15,8 +19,6 @@ import org.apache.maven.project.MavenProject;
 import org.shoulder.maven.plugins.pojo.ErrorCodeJavaDoc;
 import org.shoulder.maven.plugins.util.ClassUtil;
 
-import javax.annotation.Nonnull;
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -24,8 +26,16 @@ import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
+
+import javax.annotation.Nonnull;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * 生成错误码文档
@@ -299,9 +309,9 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
             // 特定类的包含错误码信息的每一行
             List<String> errorCodeInfo = new LinkedList<>();
             getLog().debug("analyzing Enum: " + errCodeEnumClazz.getName());
-            errorCodeInfo.add("# " + "#".repeat(errCodeEnumClazz.getName().lastIndexOf(".")));
+            errorCodeInfo.add("# " + StrUtil.repeat('#', errCodeEnumClazz.getName().lastIndexOf(".")));
             errorCodeInfo.add("# " + errCodeEnumClazz.getName());
-            errorCodeInfo.add("# " + "-".repeat(errCodeEnumClazz.getName().lastIndexOf(".")));
+            errorCodeInfo.add("# " + StrUtil.repeat('-', errCodeEnumClazz.getName().lastIndexOf(".")));
             // 获取所有枚举实例
             Enum[] instances = errCodeEnumClazz.getEnumConstants();
             for (Enum instance : instances) {
@@ -551,7 +561,7 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
             String line = "";
             for (int i = 0; i < processText.length; i++) {
                 line = processText[i].trim();
-                if (line.isBlank()) {
+                if (StrUtil.isBlank(line)) {
                     // 处理连续多空个行问题
                     continue;
                 }
