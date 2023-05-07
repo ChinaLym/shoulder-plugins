@@ -89,8 +89,8 @@
             <artifactId>jdk.tools</artifactId>
             <version>1.8</version>
             <scope>system</scope>
-<!--            jdk 有 tools.jar、dt.jar, jre 没有，便携式，或者安装jre路径覆盖jdk，会导致本机找不到 tools.jar-->
-            <systemPath>G:/Program Files (x86)/Java/jdk1.8.0_72/lib/tools.jar</systemPath>
+            <!-- 这里需要替换为编译代码机器的 JDK 路径。注意：JDK 才有 tools.jar、dt.jar, JRE 没有，如果安装的是便携式环境 / 用JRE覆盖了JDK，会导致本机找不到 tools.jar -->
+            <systemPath>L:/baseEnvironment/jdk8/lib/tools.jar</systemPath>
         </dependency>
 <!--        <dependency>-->
 <!--            <groupId>com.sun</groupId>-->

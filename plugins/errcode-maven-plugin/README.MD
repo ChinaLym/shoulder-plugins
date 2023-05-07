@@ -1,5 +1,5 @@
 # 错误码、翻译文件生成 maven 插件
-todo 该工程只支持java8
+该工程需要jdk lib目录下的 tools.jar，本地编译需要修改 pom.xml 的路径
 
 ## 使用
 
