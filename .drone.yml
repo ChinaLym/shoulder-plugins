@@ -6,7 +6,7 @@ steps:
   image: cnlym/maven:3-jdk-11-alpine-aliyun
   volumes:
     - name: mvnCache
-      path: /root/.m2
+      path: /root/.m2/repository
     - name: gnupg
       path: /root/.gnupg
   commands:
@@ -25,7 +25,7 @@ steps:
 volumes:
 - name: mvnCache
   host:
-    path: /tmp/cache/.m2
+    path: /tmp/cache/.m2/repository
       
 volumes:
 - name: gnupg
