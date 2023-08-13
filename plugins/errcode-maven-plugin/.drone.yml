@@ -1,0 +1,30 @@
+kind: pipeline
+name: default
+
+steps:
+  - name: 编译、打包、发布到 maven 仓库
+    image: cnlym/maven:3-jdk-11-alpine-aliyun
+    volumes:
+      - name: mvnCache
+        path: /root/.m2
+    commands:
+      - mvn install -DskipTests=true -B -V
+      - echo 'FINISHED deploy!'
+
+  - name: 钉钉通知、微信通知构建结果
+    image: guoxudongdocker/drone-dingtalk
+    settings:
+      token: 5f6c32b36e771df227b1ccb8898325158e12d851ae61982d1ec225a1aa58e251
+      type: markdown
+
+
+volumes:
+  - name: mvnCache
+    host:
+      path: /tmp/cache/.m2
+
+trigger:
+  branch:
+    - master
+  event:
+    - push
