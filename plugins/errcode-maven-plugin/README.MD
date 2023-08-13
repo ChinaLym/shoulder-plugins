@@ -12,7 +12,6 @@ pom.xml
 
     <build>
         <plugins>
-
             <!-- 自动生成错误码以及对应的翻译 可以在 target 目录生成所有实现 ErrorCode 接口错误码枚举类的翻译文件 -->
             <plugin>
                 <groupId>cn.itlym</groupId>
