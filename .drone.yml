@@ -10,6 +10,7 @@ steps:
     - name: gnupg
       path: /root/.gnupg
   commands:
+  - sleep 100
   - cd plugins/errcode-maven-plugin
   - mvn deploy -DskipTests=true -B -V
   - echo 'FINISHED deploy!'
