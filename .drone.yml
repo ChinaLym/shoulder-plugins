@@ -7,6 +7,8 @@ steps:
     volumes:
       - name: mvnCache
         path: /root/.m2
+      - name: gnupg
+        path: /root/.gnupg
     commands:
       - cd plugins/errcode-maven-plugin
       - mvn deploy -DskipTests=true -B -V
@@ -24,6 +26,11 @@ volumes:
     host:
       path: /tmp/cache/.m2
 
+volumes:
+  - name: gnupg
+    host:
+      path: /tmp/cache/.gnupg
+      
 trigger:
   branch:
     - master
