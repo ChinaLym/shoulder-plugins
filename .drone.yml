@@ -9,7 +9,7 @@ steps:
         path: /root/.m2
     commands:
       - cd plugins/errcode-maven-plugin
-      - mvn install -DskipTests=true -B -V
+      - mvn deploy -DskipTests=true -B -V
       - echo 'FINISHED deploy!'
 
   - name: 钉钉通知、微信通知构建结果
