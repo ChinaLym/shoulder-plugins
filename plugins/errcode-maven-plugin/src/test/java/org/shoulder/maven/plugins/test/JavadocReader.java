@@ -39,9 +39,13 @@ public class JavadocReader {
         }
     }
 
+    public static final String TEST_ErrorCodeEnum_FILE = "D:\\code\\java\\self\\shoulder-framework\\shoulder-build\\shoulder-base\\shoulder-core\\src\\main\\java\\org\\shoulder\\core\\exception\\CommonErrorCodeEnum.java";
+    public static final String TEST_Ex_FILE = "D:\\code\\java\\self\\shoulder-framework\\shoulder-build\\shoulder-base\\shoulder-core\\src\\main\\java\\org\\shoulder\\core\\exception\\SerialException.java";
+    public static final String TEST_If_FILE = "D:\\code\\java\\self\\shoulder-framework\\shoulder-build\\shoulder-base\\shoulder-core\\src\\main\\java\\org\\shoulder\\core\\exception\\ErrorCode.java";
+
     public static void main(String[] args) {
         RootDoc rootDoc = readDocs(
-                "F:\\codes\\java\\self\\shoulder-framework\\shoulder-build\\shoulder-base\\shoulder-core\\src\\main\\java\\org\\shoulder\\core\\exception\\CommonErrorCodeEnum.java",
+                TEST_ErrorCodeEnum_FILE,
                 null,
                 "F:\\codes\\java\\self\\shoulder-framework\\shoulder-build\\shoulder-base\\shoulder-core\\src\\main\\java"
                 );

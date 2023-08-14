@@ -479,6 +479,7 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
             result.setLanguage(languages[0].text().trim());
         }
         if (StrUtil.isBlank(result.language)) {
+            // todo 取插件属性,zh_CN
             result.setLanguage("zh_CN");
         }
 

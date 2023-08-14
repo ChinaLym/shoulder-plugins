@@ -42,9 +42,14 @@ pom.xml
 ```
 
 
-### 代码中使用
+### 功能
 
-1. 实现 ErrorCode 接口，并作为枚举类
+1. 允许将描述 建议写在代码注释,并根据注释生成可插拔的 错误码解释文件(方便后续替换与修改)
+2. 支持生成多种语言的翻译
+
+### 代码中使用(一个类仅同时支持生效一种方式)
+
+1. 枚举类实现 ErrorCode 接口 枚举常量上方写注释
 
 ```java
 
@@ -96,7 +101,46 @@ public enum DemoErrorCodeEnum implements ErrorCode {
 
 }
 
+```
 
+2. 异常类实现 Error code 接口, 在类上注释
+
+```java
+/**
+ * 序列化异常，非强制捕获
+ * 由于这类异常及其可能为编码导致，故不应该报给前端暴露代码漏洞，应由开发排查
+ *
+ * @author lym
+ * 
+ * @desc 错误描述-序列化异常
+ * @sug 发生后的排查建议-联系开发: #app.developers#
+ */
+public class SerialException extends BaseRuntimeException {
+
+    private static final long serialVersionUID = 5330049957369887114L;
+
+    //xxxxx
+}
+```
+
+3. 类名带特定字符(ErrorCode)的类内静态字段
+
+```java
+
+public class ErrorCodeConstant {
+    
+    /**
+     * @desc 错误描述
+     * @sug 发生后的排查建议
+     */
+    public static final String ERROR_CODE_1 = "0x112233";
+
+    /**
+     * @desc 错误描述
+     * @sug 发生后的排查建议
+     */
+    public static String ERROR_CODE_2 = "0x" + App.id + "33";
+}
 ```
 
 
