@@ -57,17 +57,26 @@
             <artifactId>hutool-http</artifactId>
             <version>${hutool.version}</version>
         </dependency>
+        <!--        <dependency>-->
+        <!--            <groupId>com.google.errorprone</groupId>-->
+        <!--            <artifactId>javac</artifactId>-->
+        <!--            <version>9-dev-r4023-3</version>-->
+        <!--        </dependency>-->
+
+        <!-- https://mvnrepository.com/artifact/com.google.code.findbugs/jsr305 -->
         <dependency>
-            <groupId>com.google.errorprone</groupId>
-            <artifactId>javac</artifactId>
-            <version>9-dev-r4023-3</version>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+            <version>3.0.2</version>
         </dependency>
 
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>${guava.version}</version>
+            <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-plugin-api</artifactId>
@@ -84,19 +93,20 @@
             <version>${maven-plugin-annotations.version}</version>
             <scope>provided</scope>
         </dependency>
+
         <dependency>
             <groupId>jdk.tools</groupId>
             <artifactId>jdk.tools</artifactId>
             <version>1.8</version>
             <scope>system</scope>
             <!-- 这里需要替换为编译代码机器的 JDK 路径。注意：JDK 才有 tools.jar、dt.jar, JRE 没有，如果安装的是便携式环境 / 用JRE覆盖了JDK，会导致本机找不到 tools.jar -->
-            <systemPath>${project.basedir}/tools.jar</systemPath>
+            <systemPath>lib/tools.jar</systemPath>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>com.sun</groupId>-->
-<!--            <artifactId>tools</artifactId>-->
-<!--            <version>1.5.0</version>-->
-<!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>com.sun</groupId>-->
+        <!--            <artifactId>tools</artifactId>-->
+        <!--            <version>1.5.0</version>-->
+        <!--        </dependency>-->
 
         <!--
 
@@ -254,6 +264,25 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.3.1</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <!-- 在jar包的MF文件中生成Class-Path属性 -->
+                            <addClasspath>true</addClasspath>
+                            <!--依赖前缀-->
+                            <classpathPrefix>lib/</classpathPrefix>
+                        </manifest>
+                        <manifestEntries>
+                            <Class-Path>lib/tools.jar</Class-Path>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
             </plugin>
 
         </plugins>

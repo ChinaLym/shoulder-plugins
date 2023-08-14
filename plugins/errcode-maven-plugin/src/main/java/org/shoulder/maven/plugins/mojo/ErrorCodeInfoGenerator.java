@@ -204,8 +204,8 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
                     .map(className -> className + ".java")
                     .collect(Collectors.toSet());
             fileNames.addAll(allErrorCodeConstantClasses.stream().map(Class::getSimpleName).map(className -> className + ".java").collect(Collectors.toSet()));
-            List<String> sourceCodeFiles = ClassUtil.listFilesAndSelect(new File(sourceDirectory.getAbsolutePath()), f -> fileNames.contains(f.getName()));
-            readJavaDoc(sourceCodeFiles, project.getCompileClasspathElements());
+            List<String> sourceCodeFilePathList = ClassUtil.listFilesAndSelect(new File(sourceDirectory.getAbsolutePath()), f -> fileNames.contains(f.getName()));
+            readJavaDoc(sourceCodeFilePathList, project.getCompileClasspathElements());
 
 
             // 解析枚举 的错误码信息
@@ -242,7 +242,7 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
     /**
      * 生成错误码信息，默认将其写入文件
      *
-     * @param allErrorCodeInfoList 错误码信息行
+     * @param allErrorCodeInfoList 错误码信息行，外层按错误码所在文件分，内层按照单个枚举字段分
      */
     private void outputErrorCodeInfo(List<List<String>> allErrorCodeInfoList) {
         getLog().info("number of analyzed class: " + allErrorCodeInfoList.size());
@@ -255,6 +255,8 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
             FileUtil.touch(outputFile);
             for (List<String> errorCodeInfoGroup : allErrorCodeInfoList) {
                 getLog().debug("line num: " + errorCodeInfoGroup.size());
+
+                // 将每个分组的信息写入
                 StringBuilder perGroup = new StringBuilder(NEW_LINE);
                 // 每两行之间插入空格
                 int count = 0;
@@ -575,15 +577,15 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
         }
     }
 
-    private void readJavaDoc(List<String> sourceCode, List<String> classesDirectory) throws InterruptedException {
+    private void readJavaDoc(List<String> sourceCodeFilePathList, List<String> classesDirectory) throws InterruptedException {
         String[] commandArg = {
-                "-doclet", Doclet.class.getName(),
+                "-doclet", SaveDocletToThreadLocal.class.getName(),
                 "-quiet", // 不产生输出
                 "-encoding", sourceCodeCharset.toLowerCase(),
                 "-classpath"
         };
         getLog().debug("=========== sourceCodes ==========");
-        sourceCode.forEach(getLog()::debug);
+        sourceCodeFilePathList.forEach(getLog()::debug);
         getLog().debug("========= analyzing javaDoc by jdkTool ===========");
 
 /*
@@ -638,7 +640,7 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
             }
         }
 
-        List<String> args = new ArrayList<>(commandArg.length + classesDirectory.size() + sourceCode.size());
+        List<String> args = new ArrayList<>(commandArg.length + classesDirectory.size() + sourceCodeFilePathList.size());
         args.addAll(Arrays.stream(commandArg).collect(Collectors.toList()));
         StringJoiner sj = new StringJoiner(",");
         classesDirectory.forEach(sj::add);
@@ -649,7 +651,7 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
         //args.add(sj.toString());
         args.add(compileOutputDirectory.getPath());
 
-        args.addAll(sourceCode);
+        args.addAll(sourceCodeFilePathList);
         String[] docArgs = args.toArray(new String[0]);
         com.sun.tools.javadoc.Main.execute(docArgs);
 
@@ -663,7 +665,7 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
 
     }
 
-    public static class Doclet {
+    public static class SaveDocletToThreadLocal {
         public static boolean start(RootDoc root) {
             rootDoc.set(root);
             return true;
