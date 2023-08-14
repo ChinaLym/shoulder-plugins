@@ -100,7 +100,7 @@
             <version>1.8</version>
             <scope>system</scope>
             <!-- 这里需要替换为编译代码机器的 JDK 路径。注意：JDK 才有 tools.jar、dt.jar, JRE 没有，如果安装的是便携式环境 / 用JRE覆盖了JDK，会导致本机找不到 tools.jar -->
-            <systemPath>lib/tools.jar</systemPath>
+            <systemPath>${project.basedir}/lib/tools.jar</systemPath>
         </dependency>
 <!--                <dependency>-->
 <!--                    <groupId>com.sun</groupId>-->
