@@ -7,7 +7,7 @@
     <groupId>cn.itlym</groupId>
     <!--插件命名遵守${prefix}-maven-plugin-->
     <artifactId>shoulder-maven-plugin</artifactId>
-    <version>0.1</version>
+    <version>0.1-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
 
     <name>Shoulder ErrorCode Helper Plugin</name>
