@@ -76,6 +76,12 @@
             <version>${guava.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>cn.itlym</groupId>
+            <artifactId>shoulder-core</artifactId>
+            <version>0.7-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
 
         <dependency>
             <groupId>org.apache.maven</groupId>

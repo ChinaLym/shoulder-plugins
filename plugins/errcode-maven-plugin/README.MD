@@ -103,27 +103,7 @@ public enum DemoErrorCodeEnum implements ErrorCode {
 
 ```
 
-2. 异常类实现 Error code 接口, 在类上注释
-
-```java
-/**
- * 序列化异常，非强制捕获
- * 由于这类异常及其可能为编码导致，故不应该报给前端暴露代码漏洞，应由开发排查
- *
- * @author lym
- * 
- * @desc 错误描述-序列化异常
- * @sug 发生后的排查建议-联系开发: #app.developers#
- */
-public class SerialException extends BaseRuntimeException {
-
-    private static final long serialVersionUID = 5330049957369887114L;
-
-    //xxxxx
-}
-```
-
-3. 类名带特定字符(ErrorCode)的类内静态字段
+2. 类名带特定字符(ErrorCode)的类内静态字段
 
 ```java
 
@@ -143,6 +123,26 @@ public class ErrorCodeConstant {
 }
 ```
 
+
+3. 【暂不推荐】~~异常类实现 Error code 接口, 在类上注释~~
+
+```java
+/**
+ * 序列化异常，非强制捕获
+ * 由于这类异常及其可能为编码导致，故不应该报给前端暴露代码漏洞，应由开发排查
+ *
+ * @author lym
+ * 
+ * @desc 错误描述-序列化异常
+ * @sug 发生后的排查建议-联系开发: #app.developers#
+ */
+public class SerialException extends BaseRuntimeException {
+
+    private static final long serialVersionUID = 5330049957369887114L;
+
+    //xxxxx
+}
+```
 
 ## 使用方式介绍
 
