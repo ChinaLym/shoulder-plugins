@@ -1,31 +1,21 @@
-package org.shoulder.maven.plugins.test;
+package org.shoulder.maven.plugins.util;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.util.ReflectUtil;
 import org.jboss.forge.roaster.Roaster;
+import org.jboss.forge.roaster._shade.org.eclipse.osgi.framework.internal.reliablefile.ReliableFile;
 import org.jboss.forge.roaster.model.JavaDoc;
 import org.jboss.forge.roaster.model.JavaDocTag;
-import org.jboss.forge.roaster.model.source.EnumConstantSource;
-import org.jboss.forge.roaster.model.source.FieldHolderSource;
-import org.jboss.forge.roaster.model.source.FieldSource;
-import org.jboss.forge.roaster.model.source.JavaDocCapableSource;
-import org.jboss.forge.roaster.model.source.JavaEnumSource;
-import org.jboss.forge.roaster.model.source.JavaSource;
+import org.jboss.forge.roaster.model.source.*;
 import org.shoulder.maven.plugins.pojo.ErrorCodeJavaDoc;
 
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Function;
 
-public class Test {
-    public static       String  TestField  = "xx";
-    public static final String  TestField2 = "yy";
-    public static final boolean TestField3 = true;
-
-    //
-
+public class OpenJdkJavaDocParser {
+    public static volatile ClassLoader cl = OpenJdkJavaDocParser.class.getClassLoader();
     /**
      * 每个类前加入：
      * #########################
@@ -36,11 +26,49 @@ public class Test {
      * 低优先-异常类：不涉及JavaDoc
      */
 
+    public static List<String> convertToErrorCodeInfo(String className, Map<String, ErrorCodeJavaDoc> map,
+                                               Function<String, String> descriptionKeyTranslator,
+                                               Function<String, String> suggestionKeyTranslator) {
+        List<String> errorCodeInfo = new ArrayList<>(3 + map.size() * 3);
+        errorCodeInfo.add("#########################");
+        errorCodeInfo.add("# " + className);
+        errorCodeInfo.add("#########################");
+        map.forEach((k, errorCodeJavaDoc) -> {
+            errorCodeInfo.add("# " + k);
+            errorCodeInfo.add(descriptionKeyTranslator.apply(errorCodeJavaDoc.getErrorCode()) + "=" + errorCodeJavaDoc.getDescription());
+            errorCodeInfo.add(suggestionKeyTranslator.apply(errorCodeJavaDoc.getErrorCode()) + "=" + errorCodeJavaDoc.getSuggestion());
+        });
+        return errorCodeInfo;
+    }
+
     public static ErrorCodeJavaDoc readClassDoc(JavaSource javaSrc) {
         return parseDoc(javaSrc);
     }
 
+    public static String getCodeFromEnum(String enumFullName, String enumConstantName) {
+        Class<?> enumClass = null;
+        try {
+            enumClass = cl.loadClass(enumFullName);
+        } catch (ClassNotFoundException e) {
+            // todo log error、cache
+            return null;
+        }
+        Enum<?>[] instances = (Enum<?>[]) enumClass.getEnumConstants();
+        for (Enum<?> instance : instances) {
+            if(instance.name().equals(enumConstantName)) {
+                return ReflectUtil.invoke(instance, "getCode");
+            }
+        }
+        return null;
+    }
+
+    /**
+     *
+     * @param javaSrc JavaEnumSource
+     * @return
+     */
     public static Map<String, ErrorCodeJavaDoc> readEnumClassFieldAndDoc(JavaSource<?> javaSrc) {
+        String fullName = javaSrc.getCanonicalName();
         Map<String, ErrorCodeJavaDoc> fieldDocMap = Optional.of(javaSrc)
                 .filter(s -> s instanceof JavaEnumSource)
                 .map(s -> (JavaEnumSource) s)
@@ -51,7 +79,13 @@ public class Test {
                     for (EnumConstantSource enumConstant : enumConstants) {
                         String name = enumConstant.getName();
                         ErrorCodeJavaDoc errorCodeJavaDoc = parseDoc(enumConstant);
-                        map.put(name, errorCodeJavaDoc);
+                        Optional.ofNullable(errorCodeJavaDoc)
+                                .ifPresent(errJavaDoc -> {
+                                    // 拿到该类 class，反射查找 getCode 方法，反射拿到对应值
+                                    String errorCode = getCodeFromEnum(fullName, name);
+                                    errJavaDoc.setErrorCode(errorCode);
+                                    map.put(name, errJavaDoc);
+                                });
                     }
                     return map;
                 })
@@ -72,7 +106,12 @@ public class Test {
                         if (field.isPublic() && field.isStatic() && "java.lang.String".equals(field.getType().getQualifiedName())) {
                             String name = field.getName();
                             ErrorCodeJavaDoc errorCodeJavaDoc = parseDoc(field);
-                            map.put(name, errorCodeJavaDoc);
+                            Optional.ofNullable(errorCodeJavaDoc)
+                                    .ifPresent(errJavaDoc -> {
+                                        String errorCode = field.getStringInitializer();
+                                        errJavaDoc.setErrorCode(errorCode);
+                                        map.put(name, errJavaDoc);
+                                    });
                         }
                     }
                     return map;
@@ -108,19 +147,4 @@ public class Test {
         return havingValue ? errorCodeJavaDoc : null;
     }
 
-
-    public static void main(String[] args) {
-
-
-        JavaSource<?> errorEnumSource = Roaster.parse(JavaSource.class, FileUtil.readString("CommonErrorCodeEnum.java", StandardCharsets.UTF_8));
-        readEnumClassFieldAndDoc(errorEnumSource);
-
-        JavaSource<?> staticStringFieldSource = Roaster.parse(JavaSource.class, FileUtil.readString(
-                "MyErrorCodes.java", StandardCharsets.UTF_8));
-
-        readFieldDocFromFinalStringFields(staticStringFieldSource);
-
-        JavaSource<?> classSource = Roaster.parse(JavaSource.class, FileUtil.readString(JavadocReader.TEST_Ex_FILE, StandardCharsets.UTF_8));
-        readClassDoc(classSource);
-    }
 }

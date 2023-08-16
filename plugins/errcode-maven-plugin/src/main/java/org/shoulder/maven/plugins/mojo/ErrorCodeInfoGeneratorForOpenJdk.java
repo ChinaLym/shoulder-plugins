@@ -1,13 +1,8 @@
 package org.shoulder.maven.plugins.mojo;
 
 import cn.hutool.core.io.FileUtil;
-import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
-import com.sun.javadoc.ClassDoc;
-import com.sun.javadoc.Doc;
-import com.sun.javadoc.FieldDoc;
-import com.sun.javadoc.RootDoc;
-import com.sun.javadoc.Tag;
+import com.sun.javadoc.*;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -17,9 +12,16 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
+import org.jboss.forge.roaster.Roaster;
+import org.jboss.forge.roaster.model.source.JavaClassSource;
+import org.jboss.forge.roaster.model.source.JavaEnumSource;
+import org.jboss.forge.roaster.model.source.JavaSource;
 import org.shoulder.maven.plugins.pojo.ErrorCodeJavaDoc;
 import org.shoulder.maven.plugins.util.ClassUtil;
+import org.shoulder.maven.plugins.util.OpenJdkJavaDocParser;
 
+import javax.annotation.Nonnull;
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -27,31 +29,23 @@ import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.Charset;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
-
-import javax.annotation.Nonnull;
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * 生成错误码文档
  * 英文 description 默认取 message？ 还是调用翻译接口？
  *
  * @author lym
- * @goal 生成错误码文档
+ * @goal 生成错误码文档-open
  * @goal extract
  * @phase package
  * @requiresDependencyResolution compile
  */
 @SuppressWarnings({"all"})
 @ThreadSafe
-@Mojo(name = "generateErrorCodeInfo", defaultPhase = LifecyclePhase.PACKAGE, requiresDependencyResolution = ResolutionScope.COMPILE)
-public class ErrorCodeInfoGenerator extends AbstractMojo {
+@Mojo(name = "generateErrorCodeInfoOpen", defaultPhase = LifecyclePhase.PACKAGE, requiresDependencyResolution = ResolutionScope.COMPILE)
+public class ErrorCodeInfoGeneratorForOpenJdk extends AbstractMojo {
 
     private static final String ERRORCODE_CLASS = "org.shoulder.core.exception.ErrorCode";
 
@@ -152,7 +146,7 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
 
     private static ThreadLocal<RootDoc> rootDoc = new ThreadLocal<>();
 
-    public ErrorCodeInfoGenerator() {
+    public ErrorCodeInfoGeneratorForOpenJdk() {
     }
 
     @Override
@@ -164,7 +158,9 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
 
         OUTPUT_CHARSET = Charset.forName(outputCharset);
 
-        ClassUtil.setClassLoader(getProjectClassLoader(project));
+        ClassLoader classLoader = getProjectClassLoader(project);
+        ClassUtil.setClassLoader(classLoader);
+        OpenJdkJavaDocParser.cl = classLoader;
         try {
             // 注册 shoulder 的 AppInfo 信息 todo，如果没有，则尝试读取 application.properties / application.yml "shoulder.application.errorCodePrefix"
             Class appInfoClass = ClassUtil.getClassLoader().loadClass(APPINFO_CLASS);
@@ -207,23 +203,39 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
             fileNames.addAll(allErrorCodeConstantClasses.stream().map(Class::getSimpleName).map(className -> className + ".java").collect(Collectors.toSet()));
             List<String> sourceCodeFilePathList = ClassUtil.listFilesAndSelect(new File(sourceDirectory.getAbsolutePath()), f -> fileNames.contains(f.getName()));
 
-            // READ JAVA DOC
-            readJavaDoc(sourceCodeFilePathList, project.getCompileClasspathElements());
+            List<List<String>> enumErrorCodeInfoList = new ArrayList<>();
+                    // READ JAVA DOC  TODO change
+            List<JavaSource<?>> javaSources = readJavaDocx(sourceCodeFilePathList);
+            for (JavaSource<?> javaSource : javaSources) {
+                if (javaSource instanceof JavaEnumSource) {
+                    Map<String, ErrorCodeJavaDoc> map = OpenJdkJavaDocParser.readEnumClassFieldAndDoc(javaSource);
+                    List<String> errorCodeInfoList = OpenJdkJavaDocParser.convertToErrorCodeInfo(
+                            javaSource.getCanonicalName(), map, this::genDescriptionKey, this::genSuggestionKey);
+                    enumErrorCodeInfoList.add(errorCodeInfoList);
+                }
+                else if (javaSource instanceof JavaClassSource) {
+                    // todo ex class: use calss doc
+                }
+                else if (javaSource instanceof JavaEnumSource) {
+                    // todo class name contains ErrorCode: use public static String field doc
+                }
+            }
+//            readJavaDoc(sourceCodeFilePathList, project.getCompileClasspathElements());
 
 
             // 解析枚举 的错误码信息
-            getLog().info("enum(impl ErrorCode) class num:" + errCodeEnumList.size());
-            List<List<String>> enumErrorCodeInfoList = generateErrorCodeInfoByEnumList(errCodeEnumList);
-
-            // 解析常量类，接口
-            enumErrorCodeInfoList.add(generateByConstantClassList(allErrorCodeConstantClasses));
-
-            // 解析异常类
-            List<Class<Exception>> exList = allErrorCodeImplList.stream()
-                    .filter(Exception.class::isAssignableFrom)
-                    .map(e -> (Class<Exception>) e)
-                    .collect(Collectors.toList());
-            getLog().info("exception(impl ErrorCode) class num:" + exList.size());
+//            getLog().info("enum(impl ErrorCode) class num:" + errCodeEnumList.size());
+//            List<List<String>> enumErrorCodeInfoList = generateErrorCodeInfoByEnumList(errCodeEnumList);
+//
+//            // 解析常量类，接口
+//            enumErrorCodeInfoList.add(generateByConstantClassList(allErrorCodeConstantClasses));
+//
+//            // 解析异常类
+//            List<Class<Exception>> exList = allErrorCodeImplList.stream()
+//                    .filter(Exception.class::isAssignableFrom)
+//                    .map(e -> (Class<Exception>) e)
+//                    .collect(Collectors.toList());
+//            getLog().info("exception(impl ErrorCode) class num:" + exList.size());
             //List<String> exErrorCodeInfoList = generateByExList(errCodeEnumList);
 
             // 写文件
@@ -579,6 +591,15 @@ public class ErrorCodeInfoGenerator extends AbstractMojo {
         } else {
             return text;
         }
+    }
+
+    private List<JavaSource<?>> readJavaDocx(List<String> sourceCodeFilePathList) throws InterruptedException {
+        return sourceCodeFilePathList.stream()
+                .map(path -> FileUtil.readString(path, sourceCodeCharset))
+                .parallel()
+                .map(javaSourceContent -> Roaster.parse(JavaSource.class, javaSourceContent))
+                .map(s -> (JavaSource<?>)s)
+                .collect(Collectors.toList());
     }
 
     private void readJavaDoc(List<String> sourceCodeFilePathList, List<String> classesDirectory) throws InterruptedException {

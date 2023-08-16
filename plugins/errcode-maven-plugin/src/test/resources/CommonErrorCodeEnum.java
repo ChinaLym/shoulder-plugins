@@ -1,3 +1,5 @@
+package org.shoulder.maven.plugins.test;
+
 import org.shoulder.core.exception.ErrorCode;
 import org.slf4j.event.Level;
 import org.springframework.http.HttpStatus;

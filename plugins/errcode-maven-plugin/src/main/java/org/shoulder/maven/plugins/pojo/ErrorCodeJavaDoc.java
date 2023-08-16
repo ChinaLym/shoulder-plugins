@@ -1,12 +1,15 @@
 package org.shoulder.maven.plugins.pojo;
 
+import org.apache.commons.lang3.StringUtils;
+
 /**
  * 错误码上的注释
  *
  * @author lym
  */
 public class ErrorCodeJavaDoc {
-    public String language = "";
+    public String language = "zh_CN";
+    public String errorCode = "";
     public String description = "";
     public String suggestion = "";
 
@@ -22,11 +25,16 @@ public class ErrorCodeJavaDoc {
         return suggestion;
     }
 
+    public String getErrorCode() {
+        return errorCode;
+    }
+
     public void setLanguage(String language) {
-        if (language.length() == 0) {
-            language = "zh_CN";
-        }
-        this.language = language;
+        this.language = StringUtils.isBlank(language) ? "zh_CN" : language;
+    }
+
+    public void setErrorCode(String errorCode) {
+        this.errorCode = errorCode;
     }
 
     public void setDescription(String description) {
