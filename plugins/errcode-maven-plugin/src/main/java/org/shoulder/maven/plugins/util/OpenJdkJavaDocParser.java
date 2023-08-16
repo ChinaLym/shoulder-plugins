@@ -1,21 +1,18 @@
 package org.shoulder.maven.plugins.util;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.ReflectUtil;
-import org.jboss.forge.roaster.Roaster;
-import org.jboss.forge.roaster._shade.org.eclipse.osgi.framework.internal.reliablefile.ReliableFile;
 import org.jboss.forge.roaster.model.JavaDoc;
 import org.jboss.forge.roaster.model.JavaDocTag;
 import org.jboss.forge.roaster.model.source.*;
 import org.shoulder.maven.plugins.pojo.ErrorCodeJavaDoc;
 
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Function;
 
 public class OpenJdkJavaDocParser {
     public static volatile ClassLoader cl = OpenJdkJavaDocParser.class.getClassLoader();
+
     /**
      * 每个类前加入：
      * #########################
@@ -27,8 +24,8 @@ public class OpenJdkJavaDocParser {
      */
 
     public static List<String> convertToErrorCodeInfo(String className, Map<String, ErrorCodeJavaDoc> map,
-                                               Function<String, String> descriptionKeyTranslator,
-                                               Function<String, String> suggestionKeyTranslator) {
+                                                      Function<String, String> descriptionKeyTranslator,
+                                                      Function<String, String> suggestionKeyTranslator) {
         List<String> errorCodeInfo = new ArrayList<>(3 + map.size() * 3);
         errorCodeInfo.add("#########################");
         errorCodeInfo.add("# " + className);
@@ -55,7 +52,7 @@ public class OpenJdkJavaDocParser {
         }
         Enum<?>[] instances = (Enum<?>[]) enumClass.getEnumConstants();
         for (Enum<?> instance : instances) {
-            if(instance.name().equals(enumConstantName)) {
+            if (instance.name().equals(enumConstantName)) {
                 return ReflectUtil.invoke(instance, "getCode");
             }
         }
@@ -63,7 +60,6 @@ public class OpenJdkJavaDocParser {
     }
 
     /**
-     *
      * @param javaSrc JavaEnumSource
      * @return
      */
