@@ -2,7 +2,6 @@ package org.shoulder.maven.plugins.mojo;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.io.FileUtil;
-import cn.hutool.core.util.StrUtil;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -22,8 +21,6 @@ import org.shoulder.maven.plugins.util.OpenJdkJavaDocParser;
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
 import java.lang.reflect.Method;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -40,7 +37,7 @@ import java.util.stream.Collectors;
  */
 @SuppressWarnings({"all"})
 @ThreadSafe
-@Mojo(name = "generateErrorCodeInfoOpen", defaultPhase = LifecyclePhase.PACKAGE, requiresDependencyResolution = ResolutionScope.COMPILE)
+@Mojo(name = "generateErrorCodeInfo", defaultPhase = LifecyclePhase.PACKAGE, requiresDependencyResolution = ResolutionScope.COMPILE)
 public class ErrorCodeInfoGeneratorForOpenJdk extends AbstractMojo {
 
     private static final String ERRORCODE_CLASS = "org.shoulder.core.exception.ErrorCode";
@@ -152,7 +149,7 @@ public class ErrorCodeInfoGeneratorForOpenJdk extends AbstractMojo {
 
         OUTPUT_CHARSET = Charset.forName(outputCharset);
 
-        ClassLoader classLoader = getProjectClassLoader(project);
+        ClassLoader classLoader = ClassUtil.getProjectClassLoader(project, this.getClass().getClassLoader(), getLog());
         ClassUtil.setClassLoader(classLoader);
         OpenJdkJavaDocParser.cl = classLoader;
         try {
@@ -238,9 +235,10 @@ public class ErrorCodeInfoGeneratorForOpenJdk extends AbstractMojo {
     private void outputErrorCodeInfo(List<List<String>> allErrorCodeInfoList) {
         getLog().info("number of analyzed class: " + allErrorCodeInfoList.size());
         // 先备份旧的
+        File bak = new File(outputFile.getPath() + ".bak");
         try {
             if (FileUtil.exist(outputFile)) {
-                FileUtil.move(outputFile, new File(outputFile.getPath() + ".bak"), true);
+                FileUtil.move(outputFile, bak, true);
                 FileUtil.del(outputFile);
             }
             FileUtil.touch(outputFile);
@@ -257,23 +255,13 @@ public class ErrorCodeInfoGeneratorForOpenJdk extends AbstractMojo {
                     ;
                 }
                 FileUtil.appendString(perGroup.toString(), outputFile, OUTPUT_CHARSET);
-
-            /*getLog().info("count: " + errorCodeInfoGroup.size());
-            List<String> linesToWrite = new ArrayList<>(errorCodeInfoGroup.size() + 2);
-            linesToWrite.add("");
-            linesToWrite.add("");
-            // 每两行之间插入空格
-            int count = 0;
-            for (String errorCodeInfo : errorCodeInfoGroup) {
-                linesToWrite.add(errorCodeInfo);
-                if((count ++ & 1) == 0){
-                    linesToWrite.add("");
-                }
-            }
-            FileUtil.appendLines(linesToWrite, outputFile, OUTPUT_CHARSET);*/
             }
         } catch (Exception e) {
             getLog().error("outputErrorCodeInfo FAIL", e);
+            // 还原
+            if (FileUtil.exist(bak)) {
+                FileUtil.move(bak, outputFile, true);
+            }
         }
 
     }
@@ -323,78 +311,6 @@ public class ErrorCodeInfoGeneratorForOpenJdk extends AbstractMojo {
      */
     private String genSuggestionKey(String sourceErrorCode) {
         return i18nKeyPrefix + sourceErrorCode + suggestionSuffix;
-    }
-
-    /**
-     * 生成错误码枚举的分割行注释
-     *
-     * @param errCodeEnumClazz 错误码枚举
-     * @return 错误码枚举的分割注释 key
-     */
-    private String genEnumSplitLine(Class<?> errCodeEnumClazz) {
-        return "# " + errCodeEnumClazz.getName();
-    }
-
-
-    /**
-     * 自定义类加载器，以获取目标项目的类环境
-     *
-     * @param project mavenProject
-     * @return 目标项目编译环境类加载器
-     */
-    private ClassLoader getProjectClassLoader(MavenProject project) {
-        try {
-            List<String> classpathList = project.getCompileClasspathElements();
-            classpathList.add(project.getBuild().getOutputDirectory());
-            classpathList.add(project.getBuild().getTestOutputDirectory());
-            // 转为 URL
-            URL[] urls = new URL[classpathList.size()];
-            for (int i = 0; i < classpathList.size(); ++i) {
-                urls[i] = new File(classpathList.get(i)).toURI().toURL();
-            }
-            // 生成类加载器
-            return new URLClassLoader(urls, this.getClass().getClassLoader());
-        } catch (Exception e) {
-            getLog().warn("Couldn't get the aim project classloader. Fallback to plugin classLoader.");
-            return this.getClass().getClassLoader();
-        }
-    }
-
-    /**
-     * 确保 text 以 endWith 结尾
-     */
-    private static String ensureEndWith(String text, String endWith) {
-        if (StrUtil.isEmpty(text)) {
-            return endWith;
-        }
-        if (StrUtil.isEmpty(endWith)) {
-            return text;
-        }
-        if (text.endsWith(endWith)) {
-            return text;
-        }
-        return text + endWith;
-    }
-
-    private static String toOneLine(String text) {
-        if (text.contains("\r") || text.contains("\n")) {
-            String[] processText = text.split("\r|\n");
-            StringBuilder sb = new StringBuilder(text.length());
-            String line = "";
-            for (int i = 0; i < processText.length; i++) {
-                line = processText[i].trim();
-                if (StrUtil.isBlank(line)) {
-                    // 处理连续多空个行问题
-                    continue;
-                }
-                sb.append(line);
-                sb.append("\\r\\n");
-            }
-            // 去掉尾部的 \r\n 4 个字符
-            return sb.substring(0, sb.length() - 4);
-        } else {
-            return text;
-        }
     }
 
     private List<JavaSource<?>> readJavaDocx(List<String> sourceCodeFilePathList) throws InterruptedException {

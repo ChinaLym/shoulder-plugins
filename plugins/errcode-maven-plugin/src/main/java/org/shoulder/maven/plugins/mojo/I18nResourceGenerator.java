@@ -13,8 +13,6 @@ import org.shoulder.maven.plugins.util.ClassUtil;
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
 import java.lang.reflect.Method;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -84,7 +82,7 @@ public class I18nResourceGenerator extends AbstractMojo {
 
         getLog().info("源码目录 sourceDirectory: " + sourceDirectory);
         getLog().info("需要扫描的包路径 scanPackage: " + scanPackage);
-        ClassUtil.setClassLoader(getProjectClassLoader(project));
+        ClassUtil.setClassLoader(ClassUtil.getProjectClassLoader(project, this.getClass().getClassLoader(), getLog()));
         try {
             // 列出所有类
             List<Class<?>> allClasses =
@@ -203,29 +201,4 @@ public class I18nResourceGenerator extends AbstractMojo {
         return "# " + errCodeEnumClazz.getName();
     }
 
-
-    /**
-     * 自定义类加载器，以获取目标项目的类环境
-     *
-     * @param project mavenProject
-     * @return 目标项目编译环境类加载器
-     */
-
-    private ClassLoader getProjectClassLoader(MavenProject project) {
-        try {
-            List<String> classpathList = project.getCompileClasspathElements();
-            classpathList.add(project.getBuild().getOutputDirectory());
-            classpathList.add(project.getBuild().getTestOutputDirectory());
-            // 转为 URL
-            URL[] urls = new URL[classpathList.size()];
-            for (int i = 0; i < classpathList.size(); ++i) {
-                urls[i] = new File(classpathList.get(i)).toURI().toURL();
-            }
-            // 生成类加载器
-            return new URLClassLoader(urls, this.getClass().getClassLoader());
-        } catch (Exception e) {
-            getLog().warn("Couldn't get the aim project classloader. Fallback to plugin classLoader.");
-            return this.getClass().getClassLoader();
-        }
-    }
 }

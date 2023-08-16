@@ -2,9 +2,12 @@ package org.shoulder.maven.plugins.util;
 
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.logging.SystemStreamLog;
+import org.apache.maven.project.MavenProject;
 
 import java.io.File;
 import java.lang.reflect.Method;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -24,12 +27,38 @@ public class ClassUtil {
 
     private static final Log log = new SystemStreamLog();
 
-    private static final ConcurrentHashMap<Class, ConcurrentHashMap<String, Method>> METHOD_CACHE = new ConcurrentHashMap<>(16);
+    private static final ConcurrentHashMap<Class<?>, ConcurrentHashMap<String, Method>> METHOD_CACHE = new ConcurrentHashMap<>(16);
+
 
     /**
-     *  支持获取当前类和父类的public方法
+     * 自定义类加载器，以获取目标项目的类环境
+     *
+     * @param project           mavenProject
+     * @param pluginClassLoader pluginClassLoader
+     * @return 目标项目编译环境类加载器
      */
-    public static Method findNoParamMethod(Class clazz, String methodName) {
+    public static ClassLoader getProjectClassLoader(MavenProject project, ClassLoader pluginClassLoader, Log log) {
+        try {
+            List<String> classpathList = project.getCompileClasspathElements();
+            classpathList.add(project.getBuild().getOutputDirectory());
+            classpathList.add(project.getBuild().getTestOutputDirectory());
+            // 转为 URL
+            URL[] urls = new URL[classpathList.size()];
+            for (int i = 0; i < classpathList.size(); ++i) {
+                urls[i] = new File(classpathList.get(i)).toURI().toURL();
+            }
+            // 生成类加载器
+            return new URLClassLoader(urls, pluginClassLoader);
+        } catch (Exception e) {
+            log.warn("Couldn't get the aim project classloader. Fallback to plugin classLoader.");
+            return pluginClassLoader;
+        }
+    }
+
+    /**
+     * 支持获取当前类和父类的public方法
+     */
+    public static Method findNoParamMethod(Class<?> clazz, String methodName) {
         ConcurrentHashMap<String, Method> methods = METHOD_CACHE.computeIfAbsent(clazz, c -> new ConcurrentHashMap<>());
         return methods.computeIfAbsent(methodName, n -> {
             try {
@@ -49,7 +78,7 @@ public class ClassUtil {
         List<Class<?>> list = new LinkedList<>();
         try {
             Class<?> clazz = getClassLoader().loadClass(fullClassName);
-            for (Class aClass : allClass) {
+            for (Class<?> aClass : allClass) {
                 boolean isSon = clazz.isAssignableFrom(aClass) && !clazz.equals(aClass);
                 // 继承或实现类，去除自身
                 if (isSon) {
@@ -65,7 +94,7 @@ public class ClassUtil {
         return list;
     }
 
-
+    @SuppressWarnings("unchecked, rawtypes")
     public static <T> List<Class<? extends T>> filterSonOfClass(Collection<Class<?>> allClass, Class<T> clazz) {
         List<Class<? extends T>> list = new LinkedList<>();
         log.info("class total num: " + allClass.size());
@@ -86,7 +115,6 @@ public class ClassUtil {
         return list;
     }
 
-    @SuppressWarnings("rawtypes")
     public static List<Class<?>> getAllClass(String sourcePath, String packageName) {
         List<String> classFullNames = convertJavaSourceToClassFullName(packageName, getAllClassFilePath(sourcePath, packageName));
         log.info("total source file num: " + classFullNames.size());
@@ -158,17 +186,17 @@ public class ClassUtil {
     /**
      * 默认使用自己的类加载器
      */
-    private static ThreadLocal<ClassLoader> classLoader = ThreadLocal.withInitial(ClassUtil.class::getClassLoader);
+    private static final ThreadLocal<ClassLoader> classLoader = ThreadLocal.withInitial(ClassUtil.class::getClassLoader);
 
     public static void setClassLoader(ClassLoader clazzLoader) {
         classLoader.set(clazzLoader);
     }
 
-    public static void clean(){
+    public static void clean() {
         classLoader.remove();
     }
 
-    public static ClassLoader getClassLoader(){
+    public static ClassLoader getClassLoader() {
         return classLoader.get();
     }
 
