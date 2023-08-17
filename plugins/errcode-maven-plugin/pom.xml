@@ -113,38 +113,28 @@
     </distributionManagement>
 
     <build>
-        <pluginManagement>
-            <plugins>
-                <!-- GPG  发布插件 【注意：发布时要改成 verify 才能在发布前执行签名】 -->
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-gpg-plugin</artifactId>
-                    <version>${maven-gpg-plugin.version}</version>
-                    <executions>
-                        <execution>
-                            <id>sign-artifacts</id>
-                            <phase>deploy</phase><!-- gpg phase verify deploy -->
-                            <goals>
-                                <goal>sign</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
-            </plugins>
-        </pluginManagement>
-
         <plugins>
-            <!-- maven 发布插件 -->
+            <!-- GPG  发布插件 mvn help:describe -Dplugin=org.apache.maven.plugins:maven-gpg-plugin:1.6 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>
+                <version>${maven-gpg-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>deploy</phase><!-- gpg phase verify deploy -->
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
+
             <plugin>
                 <groupId>org.sonatype.plugins</groupId>
                 <artifactId>nexus-staging-maven-plugin</artifactId>
-                <version>1.6.8</version>
+                <version>1.6.13</version>
                 <extensions>true</extensions>
-
                 <configuration>
                     <serverId>oss</serverId>
                     <nexusUrl>https://oss.sonatype.org/</nexusUrl>
@@ -222,40 +212,24 @@
                 </executions>
             </plugin>
 
-            <!-- GPG  发布插件 mvn help:describe -Dplugin=org.apache.maven.plugins:maven-gpg-plugin:1.6 -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-gpg-plugin</artifactId>
-                <version>${maven-gpg-plugin.version}</version>
-                <executions>
-                    <execution>
-                        <id>sign-artifacts</id>
-                        <phase>deploy</phase>
-                        <goals>
-                            <goal>sign</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>2.3.1</version>
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <!-- 在jar包的MF文件中生成Class-Path属性 -->
-                            <addClasspath>true</addClasspath>
-                            <!--依赖前缀-->
-                            <classpathPrefix>lib/</classpathPrefix>
-                        </manifest>
-                        <manifestEntries>
-                            <Class-Path>lib/tools.jar</Class-Path>
-                        </manifestEntries>
-                    </archive>
-                </configuration>
-            </plugin>
+<!--            <plugin>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-jar-plugin</artifactId>-->
+<!--                <version>2.3.1</version>-->
+<!--                <configuration>-->
+<!--                    <archive>-->
+<!--                        <manifest>-->
+<!--                            &lt;!&ndash; 在jar包的MF文件中生成Class-Path属性 &ndash;&gt;-->
+<!--                            <addClasspath>true</addClasspath>-->
+<!--                            &lt;!&ndash;依赖前缀&ndash;&gt;-->
+<!--                            <classpathPrefix>lib/</classpathPrefix>-->
+<!--                        </manifest>-->
+<!--                        <manifestEntries>-->
+<!--                            <Class-Path>lib/tools.jar</Class-Path>-->
+<!--                        </manifestEntries>-->
+<!--                    </archive>-->
+<!--                </configuration>-->
+<!--            </plugin>-->
 
         </plugins>
     </build>
