@@ -7,7 +7,7 @@ steps:
   commands:
   - cd plugins/errcode-maven-plugin
   - sed -i 's#<phase>deploy</phase><!-- gpg phase verify deploy -->#<phase>verify</phase><!-- gpg phase verify deploy -->#g' pom.xml
-  - mvn install -DskipTests=true -B -V
+  - mvn deploy -P release -Dmaven.test.skip=true -V
   - echo 'FINISHED deploy!'
 
 - name: 钉钉通知、微信通知构建结果
