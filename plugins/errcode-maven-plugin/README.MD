@@ -1,7 +1,11 @@
 # 错误码、翻译文件生成 maven 插件
 该工程需要jdk lib目录下的 tools.jar，本地编译需要修改 pom.xml 的路径
 
+解决Javadoc 编译时报错：
+[错误] 获取链接时出错：http: //selenium.googlecode.com/selenium-java/apidocs/包列表。忽略了它。
 https://blog.csdn.net/qq_42403906/article/details/127633176
+mvn version
+https://segmentfault.com/a/1190000038646318
 
 ## 使用
 
