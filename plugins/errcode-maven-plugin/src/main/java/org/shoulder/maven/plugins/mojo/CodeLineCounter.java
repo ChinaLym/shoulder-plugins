@@ -15,7 +15,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * 统计代码行数（用于测试）
+ * 统计代码行数（JUST FOR TEST）
  *
  * @author lym
  * @goal 统计代码行数

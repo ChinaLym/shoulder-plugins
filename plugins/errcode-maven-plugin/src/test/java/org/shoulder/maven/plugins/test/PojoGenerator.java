@@ -3,7 +3,6 @@ package org.shoulder.maven.plugins.test;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -11,13 +10,21 @@ import org.apache.maven.project.MavenProject;
 import org.jboss.forge.roaster.ParserException;
 import org.jboss.forge.roaster.Roaster;
 import org.jboss.forge.roaster.model.Type;
-import org.jboss.forge.roaster.model.source.*;
+import org.jboss.forge.roaster.model.source.FieldSource;
+import org.jboss.forge.roaster.model.source.JavaClassSource;
+import org.jboss.forge.roaster.model.source.JavaInterfaceSource;
+import org.jboss.forge.roaster.model.source.JavaSource;
+import org.jboss.forge.roaster.model.source.MethodSource;
 import org.jboss.forge.roaster.model.util.Refactory;
 import org.jboss.forge.roaster.model.util.Types;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -29,6 +36,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
+ * generate POJO frome interface【JUST FOR TEST】
  * https://github.com/CCI-MIT/XCoLab/blob/b0e1f6d09e88de138a57efec0c434185eb63de97/other/pojo-generator-maven-plugin/src/main/java/org/xcolab/pojo/generator/PojoGenerator.java
  */
 public class PojoGenerator extends AbstractMojo {
@@ -191,12 +199,16 @@ public class PojoGenerator extends AbstractMojo {
         org.jboss.forge.roaster.model.Parameter parameter = method.getParameters().get(0);
         String parameterName = parameter.getName();
         String methodName = method.getName();
-        if (methodName.endsWith(StringUtils.capitalize(parameterName))) {
+        if (methodName.endsWith(upperFirstChar(parameterName))) {
             return parameter;
         }
         throw new IllegalArgumentException(
                 "Setter name '" + methodName + "' with parameter '" + parameterName
                         + "' does not match required format (setSomeValue(int value)).");
+    }
+
+    private static String upperFirstChar(String s) {
+        return Character.toUpperCase(s.charAt(0)) + s.substring(1);
     }
 
     private boolean isSetter(MethodSource<JavaInterfaceSource> method) {
@@ -258,7 +270,7 @@ public class PojoGenerator extends AbstractMojo {
     private static void createGettersAndSetters(JavaClassSource pojo,
             List<FieldSource<JavaClassSource>> fields) {
         for (FieldSource<JavaClassSource> field : fields) {
-            String capitalizedName = StringUtils.capitalize(field.getName());
+            String capitalizedName = upperFirstChar(field.getName());
             String parameterString = field.getType().getName() + " " + field.getName();
             String bodySetter = String.format("this.%s = %s;", field.getName(), field.getName());
             String bodyGetter = String.format("return %s;", field.getName());

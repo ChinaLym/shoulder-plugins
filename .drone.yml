@@ -2,15 +2,17 @@ kind: pipeline
 name: default
 
 steps:
-- name: 编译、打包、发布到 maven 仓库
+- name: MVN Compile、Package、Publish To MVN Repository.
   image: cnlym/maven:3-jdk-11-alpine-aliyun
   commands:
   - cd plugins/errcode-maven-plugin
-  - sed -i 's#<phase>deploy</phase><!-- gpg phase verify deploy -->#<phase>verify</phase><!-- gpg phase verify deploy -->#g' pom.xml
+  # Active mvn package plugins for higher quality jar files.
+  - sed -i 's#<phase>deploy</phase><!-- ACTIVE_WITH_verify -->#<phase>verify</phase><!-- ACTIVE_WITH_verify -->#g' pom.xml
+  - sed -i 's#<phase>deploy</phase><!-- ACTIVE_WITH_package -->#<phase>package</phase><!-- ACTIVE_WITH_package -->#g' pom.xml
   - mvn deploy -P release -Dmaven.test.skip=true -V
   - echo 'FINISHED deploy!'
 
-- name: 钉钉通知、微信通知构建结果
+- name: Build Notification. --- with DingTalk
   image: guoxudongdocker/drone-dingtalk
   settings:
     token: 5f6c32b36e771df227b1ccb8898325158e12d851ae61982d1ec225a1aa58e251
