@@ -16,7 +16,7 @@
     <inceptionYear>2020</inceptionYear>
 
     <properties>
-        <hutool.version>5.8.15</hutool.version>
+        <hutool.version>5.8.21</hutool.version>
         <guava.version>31.1-jre</guava.version>
 
         <java.version>11</java.version>
@@ -102,12 +102,12 @@
             <version>3.0.2</version>
         </dependency>
 
-        <dependency>
-            <groupId>cn.itlym</groupId>
-            <artifactId>shoulder-core</artifactId>
-            <version>0.7-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>cn.itlym</groupId>-->
+<!--            <artifactId>shoulder-core</artifactId>-->
+<!--            <version>0.7-SNAPSHOT</version>-->
+<!--            <scope>test</scope>-->
+<!--        </dependency>-->
 
         <!-- MVN plugin standard dependency-->
         <dependency>

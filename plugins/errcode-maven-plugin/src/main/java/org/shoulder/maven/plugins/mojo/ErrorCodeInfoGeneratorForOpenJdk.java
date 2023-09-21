@@ -188,7 +188,7 @@ public class ErrorCodeInfoGeneratorForOpenJdk extends AbstractMojo {
             for (JavaSource<?> javaSource : javaSources) {
                 if (javaSource instanceof JavaEnumSource) {
                     Map<String, ErrorCodeJavaDoc> map = OpenJdkJavaDocParser.readEnumClassFieldAndDoc(javaSource);
-                    if (CollectionUtil.isNotEmpty(map)) {
+                    if (map != null && !map.isEmpty()) {
                         List<String> errorCodeInfoList = OpenJdkJavaDocParser.convertToErrorCodeInfo(javaSource.getCanonicalName(), map, this::genDescriptionKey, this::genSuggestionKey);
                         enumErrorCodeInfoList.add(errorCodeInfoList);
                     }
@@ -197,7 +197,7 @@ public class ErrorCodeInfoGeneratorForOpenJdk extends AbstractMojo {
                 } else if (javaSource instanceof FieldHolderSource && javaSource.getName().contains("ErrorCode")) {
                     // class name contains ErrorCode: use public static String field doc
                     Map<String, ErrorCodeJavaDoc> map = OpenJdkJavaDocParser.readEnumClassFieldAndDoc(javaSource);
-                    if (CollectionUtil.isNotEmpty(map)) {
+                    if (map != null && !map.isEmpty()) {
                         List<String> errorCodeInfoList = OpenJdkJavaDocParser.convertToErrorCodeInfo(javaSource.getCanonicalName(), map, this::genDescriptionKey, this::genSuggestionKey);
                         enumErrorCodeInfoList.add(errorCodeInfoList);
                     }
