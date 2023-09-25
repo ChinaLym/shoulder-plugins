@@ -26,6 +26,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.javadoc.charset>${project.build.sourceEncoding}</maven.javadoc.charset>
 
+        <maven.plugin.validation>DEFAULT</maven.plugin.validation>
         <maven-core.version>3.9.4</maven-core.version>
         <maven-plugin-api.version>3.9.4</maven-plugin-api.version>
         <maven-plugin-plugin.version>3.9.0</maven-plugin-plugin.version>
