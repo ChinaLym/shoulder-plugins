@@ -1,6 +1,5 @@
 package org.shoulder.maven.plugins.mojo;
 
-import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.io.FileUtil;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -32,8 +31,6 @@ import java.util.stream.Collectors;
  * @author lym
  * @goal 生成错误码文档-open
  * @goal extract
- * @phase package
- * @requiresDependencyResolution compile
  */
 @SuppressWarnings({"all"})
 @ThreadSafe

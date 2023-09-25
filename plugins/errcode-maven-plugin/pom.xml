@@ -28,9 +28,10 @@
 
         <maven-core.version>3.9.4</maven-core.version>
         <maven-plugin-api.version>3.9.4</maven-plugin-api.version>
+        <maven-plugin-plugin.version>3.9.0</maven-plugin-plugin.version>
         <maven-plugin-annotations.version>3.9.0</maven-plugin-annotations.version>
-
         <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
+
         <license-maven-plugin.version>2.2.0</license-maven-plugin.version>
         <maven-source-plugin.version>3.3.0</maven-source-plugin.version>
         <maven-javadoc-plugin.version>3.6.0</maven-javadoc-plugin.version>
@@ -268,7 +269,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
+                <version>${maven-compiler-plugin.version}</version>
                 <configuration>
                     <source>${java.version}</source>
                     <target>${java.version}</target>
@@ -278,7 +279,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-plugin-plugin</artifactId>
-                <version>3.6.0</version>
+                <version>${maven-plugin-plugin.version}</version>
                 <configuration>
                     <!-- 或者在类的注视上添加一个descriptor -->
                     <!-- Needed for Java 5 annotation based configuration, for some reason. -->

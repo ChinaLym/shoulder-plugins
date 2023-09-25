@@ -25,8 +25,6 @@ import java.util.stream.Collectors;
  * @author lym
  * @goal 生成翻译资源包
  * @goal extract
- * @phase package
- * @requiresDependencyResolution compile
  */
 @SuppressWarnings({"all"})
 @ThreadSafe

@@ -1,6 +1,5 @@
 package org.shoulder.maven.plugins.util;
 
-import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ReflectUtil;
 import org.jboss.forge.roaster.model.JavaDoc;
 import org.jboss.forge.roaster.model.JavaDocTag;
@@ -69,7 +68,7 @@ public class OpenJdkJavaDocParser {
                 .filter(s -> s instanceof JavaEnumSource)
                 .map(s -> (JavaEnumSource) s)
                 .map(JavaEnumSource::getEnumConstants)
-                .filter(CollectionUtil::isNotEmpty)
+                .filter(c -> !c.isEmpty())
                 .map(enumConstants -> {
                     Map<String, ErrorCodeJavaDoc> map = new HashMap<>();
                     for (EnumConstantSource enumConstant : enumConstants) {
@@ -95,7 +94,7 @@ public class OpenJdkJavaDocParser {
                 .filter(s -> s instanceof FieldHolderSource)
                 .map(s -> (FieldHolderSource<?>) s)
                 .map(FieldHolderSource::getFields)
-                .filter(CollectionUtil::isNotEmpty)
+                .filter(c -> !c.isEmpty())
                 .map(fields -> {
                     Map<String, ErrorCodeJavaDoc> map = new HashMap<>();
                     for (FieldSource<?> field : fields) {
@@ -120,10 +119,10 @@ public class OpenJdkJavaDocParser {
         List<JavaDocTag> tagList = Optional.ofNullable(javaDocCapableSource)
                 .map(JavaDocCapableSource::getJavaDoc)
                 .map(JavaDoc::getTags)
-                .filter(CollectionUtil::isNotEmpty)
+                .filter(c -> !c.isEmpty())
                 .orElse(null);
 
-        if (CollectionUtil.isEmpty(tagList)) {
+        if (tagList == null) {
             return null;
         }
 
