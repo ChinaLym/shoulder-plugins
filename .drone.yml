@@ -3,7 +3,7 @@ name: default
 
 steps:
 - name: MVN Compile、Package、Publish To MVN Repository.
-  image: cnlym/maven:3-jdk-11-alpine-aliyun
+  image: cnlym/maven:3-jdk-21-alpine-aliyun
   commands:
   - java -version
   - cd plugins/errcode-maven-plugin
