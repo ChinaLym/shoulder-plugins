@@ -8,6 +8,7 @@ steps:
   pull: if-not-exists
   commands:
 #  - gpg --import priv.key.lym
+  - /root/drone_ding_notify_curl.sh
   - cd plugins/errcode-maven-plugin
   # Active mvn package plugins for higher quality jar files.
   - sed -i 's#<phase>deploy</phase><!-- ACTIVE_WITH_verify -->#<phase>verify</phase><!-- ACTIVE_WITH_verify -->#g' pom.xml
