@@ -92,11 +92,11 @@
             <artifactId>hutool-core</artifactId>
             <version>${hutool.version}</version>
         </dependency>
-        <dependency>
-            <groupId>cn.hutool</groupId>
-            <artifactId>hutool-http</artifactId>
-            <version>${hutool.version}</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>cn.hutool</groupId>-->
+<!--            <artifactId>hutool-http</artifactId>-->
+<!--            <version>${hutool.version}</version>-->
+<!--        </dependency>-->
 
         <!-- https://mvnrepository.com/artifact/com.google.code.findbugs/jsr305 -->
         <dependency>
