@@ -7,7 +7,7 @@
     <groupId>cn.itlym.shoulder</groupId>
     <!--插件命名遵守${prefix}-maven-plugin-->
     <artifactId>shoulder-maven-plugin</artifactId>
-    <version>1.1-SNAPSHOT</version><!-- shoulder-maven-plugin.version-->
+    <version>1.0-jdk21</version><!-- shoulder-maven-plugin.version-->
     <packaging>maven-plugin</packaging>
 
     <name>Shoulder ErrorCode Helper Plugin</name>
@@ -153,7 +153,7 @@
                 <executions>
                     <execution>
                         <id>sign-artifacts</id>
-                        <phase>deploy</phase><!-- ACTIVE_WITH_verify -->
+                        <phase>verify</phase><!-- ACTIVE_WITH_verify -->
                         <goals>
                             <goal>sign</goal>
                         </goals>
