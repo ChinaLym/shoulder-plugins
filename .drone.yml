@@ -7,9 +7,6 @@ steps:
   # 加速，对于这种稳定的容器
   pull: if-not-exists
   commands:
-  - java -version
-  - gpg --list-keys
-  - sleep 300
 #  - gpg --import priv.key.lym
   - cd plugins/errcode-maven-plugin
   # Active mvn package plugins for higher quality jar files.
@@ -22,7 +19,8 @@ steps:
 - name: Build Notification. --- with DingTalk
   image: guoxudongdocker/drone-dingtalk
   settings:
-    token: 178f267b9b16b168e0a0afb223b3d41f3a58e62180ab5288aa576db02965dd72
+    token:
+      from_secret: ding_token
     type: markdown
 
 trigger:
