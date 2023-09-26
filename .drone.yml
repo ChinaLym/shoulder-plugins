@@ -10,6 +10,7 @@ steps:
   - java -version
   - gpg --list-keys
   - sleep 300
+#  - gpg --import priv.key.lym
   - cd plugins/errcode-maven-plugin
   # Active mvn package plugins for higher quality jar files.
   - sed -i 's#<phase>deploy</phase><!-- ACTIVE_WITH_verify -->#<phase>verify</phase><!-- ACTIVE_WITH_verify -->#g' pom.xml
