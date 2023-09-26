@@ -4,8 +4,12 @@ name: default
 steps:
 - name: MVN Compile、Package、Publish To MVN Repository.
   image: cnlym/maven:3-jdk-21-alpine-aliyun
+  # 加速，对于这种稳定的容器
+  pull: if-not-exists
   commands:
   - java -version
+  - gpg --list-keys
+  - sleep 300
   - cd plugins/errcode-maven-plugin
   # Active mvn package plugins for higher quality jar files.
   - sed -i 's#<phase>deploy</phase><!-- ACTIVE_WITH_verify -->#<phase>verify</phase><!-- ACTIVE_WITH_verify -->#g' pom.xml
