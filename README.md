@@ -47,3 +47,12 @@ shoulder-framework 的插件
 2.  新建 issue/{issue对应编号} 分支
 3.  提交代码
 4.  新建 Pull Request
+
+5.  新模块命名：该项目是 shoulder 协助插件，故主要与shoulder相关，groupId需要携带shoulder，举例：
+```xml
+<groupId>org.jetbrains.kotlin</groupId>
+<artifactId>kotlin-maven-plugin</artifactId>
+
+<groupId>org.apache.maven.plugins</groupId>
+<artifactId>maven-compiler-plugin</artifactId>
+```
