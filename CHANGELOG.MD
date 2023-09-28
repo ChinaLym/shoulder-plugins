@@ -4,7 +4,7 @@
 
 base on openjdk21
 
-## 1.1 （xx）
+## 1.1 （2023年9月28日）
 
 优化依赖，降低最终包的大小，base on openjdk11
 
