@@ -10,7 +10,8 @@ steps:
 #  - gpg --import priv.key.lym
 #  - /root/drone_ding_notify_curl.sh
   - cd plugins/errcode-maven-plugin
-  # Active mvn package plugins for higher quality jar files.
+  # Active mvn package plugins for higher quality jar files. change Version To release
+  - sed -i 's#-SNAPSHOT</version>#</version>#g' pom.xml
   - sed -i 's#<phase>deploy</phase><!-- ACTIVE_WITH_verify -->#<phase>verify</phase><!-- ACTIVE_WITH_verify -->#g' pom.xml
   - sed -i 's#<phase>deploy</phase><!-- ACTIVE_WITH_package -->#<phase>package</phase><!-- ACTIVE_WITH_package -->#g' pom.xml
   #- mvn install -P release -Dmaven.test.skip=true -V

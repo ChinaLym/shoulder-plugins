@@ -1,8 +1,8 @@
 # 更新记录
 
-## 1.2 （xx）
+## 1.2 （2023年9月28日）
 
-base on openjdk21
+build with openjdk21
 
 ## 1.1 （2023年9月28日）
 

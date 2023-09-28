@@ -7,7 +7,7 @@
     <groupId>cn.itlym.shoulder</groupId>
     <!--插件命名遵守${prefix}-maven-plugin-->
     <artifactId>shoulder-maven-plugin</artifactId>
-    <version>1.1</version><!-- shoulder-maven-plugin.version-->
+    <version>1.2-SNAPSHOT</version><!-- shoulder-maven-plugin.version-->
     <packaging>maven-plugin</packaging>
 
     <name>Shoulder ErrorCode Helper Plugin</name>
@@ -84,7 +84,7 @@
         <dependency>
             <groupId>org.jboss.forge.roaster</groupId>
             <artifactId>roaster-jdt</artifactId>
-            <version>2.28.0.Final</version>
+            <version>${roaster-jdt.version}</version>
         </dependency>
 
         <dependency>
@@ -104,13 +104,6 @@
             <artifactId>jsr305</artifactId>
             <version>3.0.2</version>
         </dependency>
-
-<!--        <dependency>-->
-<!--            <groupId>cn.itlym</groupId>-->
-<!--            <artifactId>shoulder-core</artifactId>-->
-<!--            <version>0.7-SNAPSHOT</version>-->
-<!--            <scope>test</scope>-->
-<!--        </dependency>-->
 
         <!-- MVN plugin standard dependency -->
         <dependency>
