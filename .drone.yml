@@ -14,7 +14,7 @@ steps:
   - sed -i 's#<phase>deploy</phase><!-- ACTIVE_WITH_verify -->#<phase>verify</phase><!-- ACTIVE_WITH_verify -->#g' pom.xml
   - sed -i 's#<phase>deploy</phase><!-- ACTIVE_WITH_package -->#<phase>package</phase><!-- ACTIVE_WITH_package -->#g' pom.xml
   #- mvn install -P release -Dmaven.test.skip=true -V
-  - mvn compile -P release -Dmaven.test.skip=true -V
+  - mvn deploy -P release -Dmaven.test.skip=true -V
   - echo 'FINISHED deploy!'
 
 - name: Build Notification. --- with DingTalk
