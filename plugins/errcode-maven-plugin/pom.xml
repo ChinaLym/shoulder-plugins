@@ -84,7 +84,7 @@
         <dependency>
             <groupId>org.jboss.forge.roaster</groupId>
             <artifactId>roaster-jdt</artifactId>
-            <version>${roaster-jdt.version}</version>
+            <version>2.28.0.Final</version>
         </dependency>
 
         <dependency>
