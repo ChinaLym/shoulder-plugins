@@ -4,6 +4,10 @@
 
 -
 
+## 1.2.1 （2023年9月28日）
+
+perf:support concurrent compile
+
 ## 1.2 （2023年9月28日）
 
 build with openjdk21

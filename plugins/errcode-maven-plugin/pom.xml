@@ -7,7 +7,7 @@
     <groupId>cn.itlym.shoulder</groupId>
     <!--插件命名遵守${prefix}-maven-plugin-->
     <artifactId>shoulder-maven-plugin</artifactId>
-    <version>1.3-SNAPSHOT</version><!-- shoulder-maven-plugin.version-->
+    <version>1.2.1-SNAPSHOT</version><!-- shoulder-maven-plugin.version-->
     <packaging>maven-plugin</packaging>
 
     <name>Shoulder ErrorCode Helper Plugin</name>
@@ -99,11 +99,12 @@
 <!--        </dependency>-->
 
         <!-- https://mvnrepository.com/artifact/com.google.code.findbugs/jsr305 -->
-        <dependency>
-            <groupId>com.google.code.findbugs</groupId>
-            <artifactId>jsr305</artifactId>
-            <version>3.0.2</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.google.code.findbugs</groupId>-->
+<!--            <artifactId>jsr305</artifactId>-->
+<!--            <scope>test</scope>-->
+<!--            <version>3.0.2</version>-->
+<!--        </dependency>-->
 
         <!-- MVN plugin standard dependency -->
         <dependency>

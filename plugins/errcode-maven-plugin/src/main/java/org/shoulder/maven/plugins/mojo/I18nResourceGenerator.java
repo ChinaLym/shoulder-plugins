@@ -10,7 +10,6 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.shoulder.maven.plugins.util.ClassUtil;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -27,8 +26,8 @@ import java.util.stream.Collectors;
  * @goal extract
  */
 @SuppressWarnings({"all"})
-@ThreadSafe
-@Mojo(name = "generateI18nResource", defaultPhase = LifecyclePhase.PACKAGE, requiresDependencyResolution = ResolutionScope.COMPILE)
+@Mojo(name = "generateI18nResource", defaultPhase = LifecyclePhase.PACKAGE,
+        requiresDependencyResolution = ResolutionScope.COMPILE, threadSafe = true)
 public class I18nResourceGenerator extends AbstractMojo {
 
     /**

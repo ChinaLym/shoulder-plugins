@@ -7,7 +7,6 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -21,8 +20,7 @@ import java.util.List;
  * @author lym
  * @goal 统计代码行数
  */
-@ThreadSafe
-@Mojo(name = "countLine")
+@Mojo(name = "countLine", threadSafe = true)
 public class CodeLineCounter extends AbstractMojo {
 
     private static final String[] INCLUDES_DEFAULT = {"properties", "xml", "java", "yml"};

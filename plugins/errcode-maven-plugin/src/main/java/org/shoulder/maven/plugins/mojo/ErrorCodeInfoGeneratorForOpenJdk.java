@@ -17,11 +17,15 @@ import org.shoulder.maven.plugins.pojo.ErrorCodeJavaDoc;
 import org.shoulder.maven.plugins.util.ClassUtil;
 import org.shoulder.maven.plugins.util.OpenJdkJavaDocParser;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -33,8 +37,8 @@ import java.util.stream.Collectors;
  * @goal extract
  */
 @SuppressWarnings({"all"})
-@ThreadSafe
-@Mojo(name = "generateErrorCodeInfo", defaultPhase = LifecyclePhase.PACKAGE, requiresDependencyResolution = ResolutionScope.COMPILE)
+@Mojo(name = "generateErrorCodeInfo", defaultPhase = LifecyclePhase.PACKAGE,
+        requiresDependencyResolution = ResolutionScope.COMPILE, threadSafe = true)
 public class ErrorCodeInfoGeneratorForOpenJdk extends AbstractMojo {
 
     private static final String ERRORCODE_CLASS = "org.shoulder.core.exception.ErrorCode";
