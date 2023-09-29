@@ -4,6 +4,7 @@ import cn.hutool.core.io.FileUtil;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.Execute;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -33,10 +34,9 @@ import java.util.stream.Collectors;
  * 英文 description 默认取 message？ 还是调用翻译接口？
  *
  * @author lym
- * @goal 生成错误码文档-open
- * @goal extract
  */
 @SuppressWarnings({"all"})
+@Execute(goal = "genI18FromCodeJavaDoc")
 @Mojo(name = "generateErrorCodeInfo", defaultPhase = LifecyclePhase.PACKAGE,
         requiresDependencyResolution = ResolutionScope.COMPILE, threadSafe = true)
 public class ErrorCodeInfoGeneratorForOpenJdk extends AbstractMojo {

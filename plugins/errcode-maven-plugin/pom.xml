@@ -37,6 +37,9 @@
         <maven-source-plugin.version>3.3.0</maven-source-plugin.version>
         <maven-javadoc-plugin.version>3.4.1</maven-javadoc-plugin.version>
         <maven-gpg-plugin.version>3.1.0</maven-gpg-plugin.version>
+
+        <!-- Maven3.9+ 新特性-插件验证 https://maven.apache.org/guides/plugins/validation/index.html-->
+<!--        <maven.plugin.validation>VERBOSE</maven.plugin.validation>-->
     </properties>
 
     <!-- 版本控制，供其他插件使用 todo 修改为 github-->
@@ -92,36 +95,38 @@
             <artifactId>hutool-core</artifactId>
             <version>${hutool.version}</version>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>cn.hutool</groupId>-->
-<!--            <artifactId>hutool-http</artifactId>-->
-<!--            <version>${hutool.version}</version>-->
-<!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>cn.hutool</groupId>-->
+        <!--            <artifactId>hutool-http</artifactId>-->
+        <!--            <version>${hutool.version}</version>-->
+        <!--        </dependency>-->
 
         <!-- https://mvnrepository.com/artifact/com.google.code.findbugs/jsr305 -->
-<!--        <dependency>-->
-<!--            <groupId>com.google.code.findbugs</groupId>-->
-<!--            <artifactId>jsr305</artifactId>-->
-<!--            <scope>test</scope>-->
-<!--            <version>3.0.2</version>-->
-<!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>com.google.code.findbugs</groupId>-->
+        <!--            <artifactId>jsr305</artifactId>-->
+        <!--            <scope>test</scope>-->
+        <!--            <version>3.0.2</version>-->
+        <!--        </dependency>-->
 
-        <!-- MVN plugin standard dependency -->
+        <!-- MVN plugin standard dependency; maven inner dependency, warning without provided. -->
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-plugin-api</artifactId>
             <version>${maven-plugin-api.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-core</artifactId>
             <version>${maven-core.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.maven.plugin-tools</groupId>
             <artifactId>maven-plugin-annotations</artifactId>
             <version>${maven-plugin-annotations.version}</version>
-            <scope>provided</scope><!-- annotations are not used at runtime because @Retention(value=CLASS), they are needed only to build the plugin -->
+            <scope>provided</scope>
         </dependency>
 
     </dependencies>
@@ -147,7 +152,7 @@
                 <executions>
                     <execution>
                         <id>sign-artifacts</id>
-                        <phase>verify</phase><!-- ACTIVE_WITH_verify -->
+                        <phase>deploy</phase><!-- ACTIVE_WITH_verify -->
                         <goals>
                             <goal>sign</goal>
                         </goals>
@@ -283,71 +288,71 @@
             </plugin>
 
             <!-- attach source into jar 插件不需要源码，减少发布大小 -->
-<!--            <plugin>-->
-<!--                <groupId>org.apache.maven.plugins</groupId>-->
-<!--                <artifactId>maven-source-plugin</artifactId>-->
-<!--                <version>${maven-source-plugin.version}</version>-->
-<!--                <executions>-->
-<!--                    <execution>-->
-<!--                        <phase>deploy</phase>&lt;!&ndash; ACTIVE_WITH_package &ndash;&gt;-->
-<!--                        <goals>-->
-<!--                            <goal>jar-no-fork</goal>-->
-<!--                        </goals>-->
-<!--                    </execution>-->
-<!--                </executions>-->
-<!--            </plugin>-->
+            <!--            <plugin>-->
+            <!--                <groupId>org.apache.maven.plugins</groupId>-->
+            <!--                <artifactId>maven-source-plugin</artifactId>-->
+            <!--                <version>${maven-source-plugin.version}</version>-->
+            <!--                <executions>-->
+            <!--                    <execution>-->
+            <!--                        <phase>deploy</phase>&lt;!&ndash; ACTIVE_WITH_package &ndash;&gt;-->
+            <!--                        <goals>-->
+            <!--                            <goal>jar-no-fork</goal>-->
+            <!--                        </goals>-->
+            <!--                    </execution>-->
+            <!--                </executions>-->
+            <!--            </plugin>-->
 
             <!-- Javadoc: 插件暂时不是很需要javadoc -->
-<!--            <plugin>-->
-<!--                <groupId>org.apache.maven.plugins</groupId>-->
-<!--                <artifactId>maven-javadoc-plugin</artifactId>-->
-<!--                <version>${maven-javadoc-plugin.version}</version>-->
-<!--                <configuration>-->
-<!--                    <encoding>${maven.javadoc.charset}</encoding>-->
-<!--                    <charset>${maven.javadoc.charset}</charset>-->
-<!--                    <docencoding>${maven.javadoc.charset}</docencoding>-->
-<!--                    &lt;!&ndash; 解决Javadoc 编译时报错 &ndash;&gt;-->
-<!--                    <detectLinks>true</detectLinks>-->
-<!--                    <detectOfflineLinks>true</detectOfflineLinks>-->
-<!--                    <detectJavaApiLink>true</detectJavaApiLink>-->
-<!--                    <linksource>true</linksource>-->
-<!--                    <links>-->
-<!--                        <link>http://testng.org/javadocs/</link>-->
-<!--                    </links>-->
-<!--                </configuration>-->
-<!--                &lt;!&ndash;MAVEN_OPTS=-Dfile.encoding=UTF-8;JAVA_TOOL_OPTIONS=-Dfile.encoding=UTF-8&ndash;&gt;-->
-<!--                <executions>-->
-<!--                    <execution>-->
-<!--                        <phase>deploy</phase>&lt;!&ndash; ACTIVE_WITH_package &ndash;&gt;-->
-<!--                        <goals>-->
-<!--                            <goal>jar</goal>-->
-<!--                        </goals>-->
-<!--                        <configuration>-->
-<!--                            &lt;!&ndash; 取消对源码中的doc参数注释等检查 3.x 之前为 additionalparam &ndash;&gt;-->
-<!--                            <additionalJOption>-Xdoclint:none</additionalJOption>-->
-<!--                        </configuration>-->
-<!--                    </execution>-->
-<!--                </executions>-->
-<!--            </plugin>-->
+            <!--            <plugin>-->
+            <!--                <groupId>org.apache.maven.plugins</groupId>-->
+            <!--                <artifactId>maven-javadoc-plugin</artifactId>-->
+            <!--                <version>${maven-javadoc-plugin.version}</version>-->
+            <!--                <configuration>-->
+            <!--                    <encoding>${maven.javadoc.charset}</encoding>-->
+            <!--                    <charset>${maven.javadoc.charset}</charset>-->
+            <!--                    <docencoding>${maven.javadoc.charset}</docencoding>-->
+            <!--                    &lt;!&ndash; 解决Javadoc 编译时报错 &ndash;&gt;-->
+            <!--                    <detectLinks>true</detectLinks>-->
+            <!--                    <detectOfflineLinks>true</detectOfflineLinks>-->
+            <!--                    <detectJavaApiLink>true</detectJavaApiLink>-->
+            <!--                    <linksource>true</linksource>-->
+            <!--                    <links>-->
+            <!--                        <link>http://testng.org/javadocs/</link>-->
+            <!--                    </links>-->
+            <!--                </configuration>-->
+            <!--                &lt;!&ndash;MAVEN_OPTS=-Dfile.encoding=UTF-8;JAVA_TOOL_OPTIONS=-Dfile.encoding=UTF-8&ndash;&gt;-->
+            <!--                <executions>-->
+            <!--                    <execution>-->
+            <!--                        <phase>deploy</phase>&lt;!&ndash; ACTIVE_WITH_package &ndash;&gt;-->
+            <!--                        <goals>-->
+            <!--                            <goal>jar</goal>-->
+            <!--                        </goals>-->
+            <!--                        <configuration>-->
+            <!--                            &lt;!&ndash; 取消对源码中的doc参数注释等检查 3.x 之前为 additionalparam &ndash;&gt;-->
+            <!--                            <additionalJOption>-Xdoclint:none</additionalJOption>-->
+            <!--                        </configuration>-->
+            <!--                    </execution>-->
+            <!--                </executions>-->
+            <!--            </plugin>-->
 
-<!--            <plugin>-->
-<!--                <groupId>org.apache.maven.plugins</groupId>-->
-<!--                <artifactId>maven-jar-plugin</artifactId>-->
-<!--                <version>2.3.1</version>-->
-<!--                <configuration>-->
-<!--                    <archive>-->
-<!--                        <manifest>-->
-<!--                            &lt;!&ndash; 在jar包的MF文件中生成Class-Path属性 &ndash;&gt;-->
-<!--                            <addClasspath>true</addClasspath>-->
-<!--                            &lt;!&ndash;依赖前缀&ndash;&gt;-->
-<!--                            <classpathPrefix>lib/</classpathPrefix>-->
-<!--                        </manifest>-->
-<!--                        <manifestEntries>-->
-<!--                            <Class-Path>lib/tools.jar</Class-Path>-->
-<!--                        </manifestEntries>-->
-<!--                    </archive>-->
-<!--                </configuration>-->
-<!--            </plugin>-->
+            <!--            <plugin>-->
+            <!--                <groupId>org.apache.maven.plugins</groupId>-->
+            <!--                <artifactId>maven-jar-plugin</artifactId>-->
+            <!--                <version>2.3.1</version>-->
+            <!--                <configuration>-->
+            <!--                    <archive>-->
+            <!--                        <manifest>-->
+            <!--                            &lt;!&ndash; 在jar包的MF文件中生成Class-Path属性 &ndash;&gt;-->
+            <!--                            <addClasspath>true</addClasspath>-->
+            <!--                            &lt;!&ndash;依赖前缀&ndash;&gt;-->
+            <!--                            <classpathPrefix>lib/</classpathPrefix>-->
+            <!--                        </manifest>-->
+            <!--                        <manifestEntries>-->
+            <!--                            <Class-Path>lib/tools.jar</Class-Path>-->
+            <!--                        </manifestEntries>-->
+            <!--                    </archive>-->
+            <!--                </configuration>-->
+            <!--            </plugin>-->
 
         </plugins>
     </build>

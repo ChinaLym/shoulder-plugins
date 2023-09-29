@@ -3,6 +3,7 @@ package org.shoulder.maven.plugins.mojo;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.Execute;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -22,10 +23,9 @@ import java.util.stream.Collectors;
  * 生成翻译资源包，扫描所有 org.springframework.context.MessageSourceResolvable 生成对应的多语言翻译，默认生成中文，英文 key，以注释作为中文翻译
  *
  * @author lym
- * @goal 生成翻译资源包
- * @goal extract
  */
 @SuppressWarnings({"all"})
+@Execute(goal = "autoGenI18Resource(test)")
 @Mojo(name = "generateI18nResource", defaultPhase = LifecyclePhase.PACKAGE,
         requiresDependencyResolution = ResolutionScope.COMPILE, threadSafe = true)
 public class I18nResourceGenerator extends AbstractMojo {

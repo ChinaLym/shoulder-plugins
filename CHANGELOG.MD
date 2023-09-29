@@ -6,7 +6,9 @@
 
 ## 1.2.1 （2023年9月28日）
 
-perf:support concurrent compile
+- Perf:support concurrent compile
+- Kill warnings, use recommended plugin code style.
+- Slimming jar size, add provided for maven inner plugins.
 
 ## 1.2 （2023年9月28日）
 
