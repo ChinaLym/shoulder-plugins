@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
  */
 @SuppressWarnings({"all"})
 @Execute(goal = "autoGenI18Resource(test)")
-@Mojo(name = "generateI18nResource", defaultPhase = LifecyclePhase.PACKAGE,
+@Mojo(name = "autoGenI18Resource", defaultPhase = LifecyclePhase.PACKAGE,
         requiresDependencyResolution = ResolutionScope.COMPILE, threadSafe = true)
 public class I18nResourceGenerator extends AbstractMojo {
 

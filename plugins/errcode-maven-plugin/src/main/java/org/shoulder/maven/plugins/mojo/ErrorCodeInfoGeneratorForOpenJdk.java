@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
  * @author lym
  */
 @SuppressWarnings({"all"})
-@Execute(goal = "genI18FromCodeJavaDoc")
+@Execute(goal = "generateErrorCodeInfo")
 @Mojo(name = "generateErrorCodeInfo", defaultPhase = LifecyclePhase.PACKAGE,
         requiresDependencyResolution = ResolutionScope.COMPILE, threadSafe = true)
 public class ErrorCodeInfoGeneratorForOpenJdk extends AbstractMojo {
