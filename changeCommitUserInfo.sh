@@ -1,5 +1,5 @@
-git filter-branch --env-filter '
-OLD_EMAIL="lymdhr@qq.com"
+git filter-branch -f --env-filter '
+OLD_EMAIL="liuyanming.lym@antgroup.com"
 CORRECT_NAME="lym"
 CORRECT_EMAIL="lymdhr@qq.com"
 if [ "$GIT_COMMITTER_EMAIL" = "$OLD_EMAIL" ]
@@ -13,3 +13,6 @@ then
     export GIT_AUTHOR_EMAIL="$CORRECT_EMAIL"
 fi
 ' --tag-name-filter cat -- --branches --tags
+
+# git push --force --tags git 'refs/heads/*'
+# git push --force --tags origin 'refs/heads/*'
