@@ -42,12 +42,12 @@
 
 ### 效果
 
-1. 去 [shoulder-framework-demo1](https://github.com/ChinaLym/shoulder-framework-demo/tree/main/demo1) 中查看demo中`人工`写法 [翻译文件](https://github.com/ChinaLym/shoulder-framework-demo/blob/main/demo1/src/main/resources/language/zh_CN/messages.properties) 的翻译文件，打包时自动打进jar里
+1. 去 [shoulder-framework-demo1](https://github.com/ChinaLym/shoulder-framework-demo/tree/main/demo1) 中查看demo中`人工`写法 [翻译文件](https://github.com/ChinaLym/shoulder-framework-demo/blob/main/demo1/src/main/resources/language/zh_CN/messages.properties) 的翻译文件
 ![manual.png](doc/manual.png)
 
 2. 去 [shoulder-framework](https://github.com/ChinaLym/shoulder-framework/blob/master/shoulder-build/shoulder-base/shoulder-core/pom.xml) 查看框架中`自动生成`的使用
 
-> shoulder-core 引入该插件后，编译时，会自动生成以下用于展示多语言错误码提示的文件。
+> shoulder-core 引入该插件后，编译时，会根据代码注释自动生成以下用于展示多语言错误码提示的文件，并自动打包进jar中。
 
 ![shoulder-usecase.png](doc/shoulder-usecase.png)
 
