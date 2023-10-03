@@ -16,3 +16,8 @@ fi
 
 # git push --force --tags git 'refs/heads/*'
 # git push --force --tags origin 'refs/heads/*'
+
+# git remote set-url github git@github.com:ChinaLym/shoulder-plugins.git
+# 如果ssl有问题可以考虑 git config --global http.sslVerify"false"
+# git push -u github main -f
+# git push --delete origin <tagVersion>
