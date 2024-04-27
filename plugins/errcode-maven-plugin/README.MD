@@ -1,11 +1,4 @@
-# 错误码、翻译文件生成 maven 插件
-该工程需要jdk lib目录下的 tools.jar，本地编译需要修改 pom.xml 的路径
-
-解决Javadoc 编译时报错：
-[错误] 获取链接时出错：http: //selenium.googlecode.com/selenium-java/apidocs/包列表。忽略了它。
-https://blog.csdn.net/qq_42403906/article/details/127633176
-mvn version
-https://segmentfault.com/a/1190000038646318
+# 📖 shoulder-maven-plugin
 
 ## 使用
 
@@ -19,9 +12,9 @@ pom.xml
         <plugins>
             <!-- 自动生成错误码以及对应的翻译 可以在 target 目录生成所有实现 ErrorCode 接口错误码枚举类的翻译文件 -->
             <plugin>
-                <groupId>cn.itlym</groupId>
+                <groupId>cn.itlym.shoulder</groupId>
                 <artifactId>shoulder-maven-plugin</artifactId>
-                <version>0.1-SNAPSHOT</version>
+                <version>1.2.1</version>
                 <configuration>
                     <!-- 【必填】本组件对应的错误码前缀 -->
                     <errorCodePrefix>0x000a</errorCodePrefix>
@@ -159,7 +152,7 @@ public class SerialException extends BaseRuntimeException {
      * @desc 错误描述
      * @sug 发生后的排查建议
      */
-     XXX     
+    public static final String ERROR_CODE_1 = "0x112233";
 
 ```
 
@@ -170,7 +163,7 @@ public class SerialException extends BaseRuntimeException {
     /**
      * 调用外部接口失败
      */
-     XXX     
+    public static final String ERROR_CODE_1 = "0x112233";
 
 ```
 此时，将使用注释内容作为错误码的描述部分(相当于使用了 @desc 标签)
@@ -180,7 +173,7 @@ public class SerialException extends BaseRuntimeException {
     /**
      * @desc 调用外部接口失败
      */
-     XXX     
+    public static final String ERROR_CODE_1 = "0x112233";
 
 ```
 插件生成 @sug 时，将使用插件声明时配置的参数 `defaultSuggestionInfo`，默认为 `1.请前往服务器 xxx 目录查看并导出并保留程序运行日志 \r\n 2.联系相应开发人员根据保留的日志信息，协助排查。`
@@ -196,7 +189,7 @@ public class SerialException extends BaseRuntimeException {
     /**
      * @sug 检查日志
      */
-     XXX     
+    public static final String ERROR_CODE_1 = "0x112233";
 
 ```
 **目前不建议这么写，不规范的编码，不利于排查问题**
@@ -209,7 +202,7 @@ public class SerialException extends BaseRuntimeException {
      *  第二行
      * @sug 检查日志
      */
-     XXX     
+    public static final String ERROR_CODE_1 = "0x112233";
 
 ```
 **目前不建议这么写，语言不够简练**
@@ -222,7 +215,7 @@ public class SerialException extends BaseRuntimeException {
      *  第二行
      * @sug 检查日志
      */
-     XXX     
+    public static final String ERROR_CODE_1 = "0x112233";
 
 ```
 **目前不建议这么写，语言不够简练**
@@ -236,7 +229,7 @@ public class SerialException extends BaseRuntimeException {
      *  第二行
      * @sug 检查日志
      */
-     XXX     
+    public static final String ERROR_CODE_1 = "0x112233";
 
 ```
 **目前不建议这么写，显示格式不应写死在后端开发代码里**
