@@ -73,4 +73,4 @@ It's open for contribution，`code format`, `java doc`, `comment`, `bugfix`, `ne
 
 Thanks for your **[Star](https://gitee.com/ChinaLym/shoulder-framework/star)** 、 **Fork** 、 **PR**.
 
-Contact us with `github issue` or [email to cn_lym@foxmai.com](mailto:cn_lym@foxmai.com), waiting for any suggestions or discussion~
+Contact us with `github issue` or [email to cn_lym@foxmail.com](mailto:cn_lym@foxmail.com), waiting for any suggestions or discussion~
