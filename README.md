@@ -4,7 +4,7 @@
 [![](https://img.shields.io/badge/Author-lym-yellow.svg)](https://github.com/ChinaLym)
 [![](https://img.shields.io/badge/CICD-PASS-green.svg)](https://github.com/ChinaLym/shoulder-framework)
 
-[![](https://img.shields.io/badge/Latest%20Version-1.2.1-blue.svg)](https://github.com/ChinaLym/shoulder-plugins)
+[![](https://img.shields.io/badge/Latest%20Version-1.2.2-blue.svg)](https://github.com/ChinaLym/shoulder-plugins)
 
 # 📖 INTRODUCE [中文_Chinese](README_ZH.md)
 a maven plugin which can **generate manuals of error code info and i18n resource files automatically**.
@@ -24,7 +24,7 @@ add dependency to your project
             <plugin>
                 <groupId>cn.itlym.shoulder</groupId>
                 <artifactId>shoulder-maven-plugin</artifactId>
-                <version>1.2.1</version>
+                <version>1.2.2</version>
                 <executions>
                     <execution>
                         <!-- active plugin when mvn complie -->

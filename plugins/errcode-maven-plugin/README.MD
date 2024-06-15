@@ -14,7 +14,7 @@ pom.xml
             <plugin>
                 <groupId>cn.itlym.shoulder</groupId>
                 <artifactId>shoulder-maven-plugin</artifactId>
-                <version>1.2.1</version>
+                <version>1.2.2</version>
                 <configuration>
                     <!-- 【必填】本组件对应的错误码前缀 -->
                     <errorCodePrefix>0x000a</errorCodePrefix>

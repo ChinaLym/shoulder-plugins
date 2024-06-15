@@ -7,7 +7,7 @@
     <groupId>cn.itlym.shoulder</groupId>
     <!--插件命名遵守${prefix}-maven-plugin-->
     <artifactId>shoulder-maven-plugin</artifactId>
-    <version>1.2.2-SNAPSHOT</version><!-- shoulder-maven-plugin.version-->
+    <version>1.2.2</version><!-- shoulder-maven-plugin.version-->
     <packaging>maven-plugin</packaging>
 
     <name>Shoulder ErrorCode Helper Plugin</name>
@@ -37,7 +37,7 @@
         <maven-source-plugin.version>3.3.0</maven-source-plugin.version>
         <maven-javadoc-plugin.version>3.4.1</maven-javadoc-plugin.version>
         <maven-gpg-plugin.version>3.1.0</maven-gpg-plugin.version>
-
+        <gpg.passphrase>${env.GPG_PASSPHRASE}</gpg.passphrase>
         <!-- Maven3.9+ 新特性-插件验证 https://maven.apache.org/guides/plugins/validation/index.html-->
 <!--        <maven.plugin.validation>VERBOSE</maven.plugin.validation>-->
     </properties>
