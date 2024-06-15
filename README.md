@@ -6,7 +6,7 @@
 
 [![](https://img.shields.io/badge/Latest%20Version-1.2.1-blue.svg)](https://github.com/ChinaLym/shoulder-plugins)
 
-# 📖 INTRODUCE [中文_Chinese](README_ZH)
+# 📖 INTRODUCE [中文_Chinese](README_ZH.md)
 a maven plugin which can **generate manuals of error code info and i18n resource files automatically**.
 
 technical under [shoulder-framework](https://github.com/ChinaLym/shoulder-framework) [shoulder-core i18n](https://github.com/ChinaLym/shoulder-framework/blob/master/shoulder-build/shoulder-base/shoulder-core/README.md#%E7%BF%BB%E8%AF%91%E4%B8%8E%E5%A4%9A%E8%AF%AD%E8%A8%80).
@@ -63,7 +63,7 @@ More user cases see [plugin introduce](plugins/errcode-maven-plugin/README.MD).
 # ❓ FAQ
 
 **Q:** What is [shoulder-framework](https://github.com/ChinaLym/shoulder-framework)?
-- **A:** a fantastic framework based on [Spring BOOT](https://github.com/spring-projects/spring-boot).
+- **A:** a fantastic framework based on [Spring Boot](https://github.com/spring-projects/spring-boot).
 
 # 💗 Contribute
 

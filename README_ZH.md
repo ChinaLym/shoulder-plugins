@@ -66,7 +66,7 @@
 # ❓常见问题
 
 **Q:** [shoulder-framework](https://github.com/ChinaLym/shoulder-framework) 是什么?
-- **A:** a fantastic framework based on [Spring BOOT](https://github.com/spring-projects/spring-boot)
+- **A:** a fantastic framework based on [Spring Boot](https://github.com/spring-projects/spring-boot)
 
 # 💗 贡献代码
 
