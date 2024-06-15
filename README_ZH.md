@@ -4,7 +4,7 @@
 [![](https://img.shields.io/badge/Author-lym-yellow.svg)](https://github.com/ChinaLym)
 [![](https://img.shields.io/badge/CICD-PASS-green.svg)](https://github.com/ChinaLym/shoulder-framework)
 
-[![](https://img.shields.io/badge/Latest%20Version-1.2-blue.svg)](https://github.com/ChinaLym/shoulder-plugins)
+[![](https://img.shields.io/badge/Latest%20Version-1.2.2-blue.svg)](https://github.com/ChinaLym/shoulder-plugins)
 
 # 📖 简介
 自动生成错误码、多语言文件 maven 插件.
