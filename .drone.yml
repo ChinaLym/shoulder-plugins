@@ -13,9 +13,7 @@ steps:
 # 只构建
 #  - mvn install -P release -Dmaven.test.skip=true -V
 # 发布: version, tag, release
-# Active mvn package plugins for higher quality jar files. change Version To release
   - sed -i 's#<phase>deploy</phase><!-- ACTIVE_WITH_verify -->#<phase>verify</phase><!-- ACTIVE_WITH_verify -->#g' pom.xml
-  - sed -i 's#<phase>deploy</phase><!-- ACTIVE_WITH_package -->#<phase>package</phase><!-- ACTIVE_WITH_package -->#g' pom.xml
   - sed -i 's#-SNAPSHOT</version>#</version>#g' pom.xml
 #  - git tag -a v1.2.2 -m "${DRONE_COMMIT_MESSAGE}" & git push origin --tags
   - mvn deploy -P release -Dmaven.test.skip=true -V
