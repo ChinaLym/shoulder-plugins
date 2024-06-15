@@ -4,6 +4,10 @@
 
 - 😎Stay tuned.
 
+## 1.2.2 （2024-6-15）
+
+- change min compile-jdk-acquire 21 -> 17
+
 ## 1.2.1 （2023-9-28）
 
 - Perf:support concurrent compile
